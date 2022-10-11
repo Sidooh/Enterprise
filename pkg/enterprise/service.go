@@ -1,10 +1,10 @@
 package enterprise
 
 import (
+	"enterprise-gateway.sidooh/pkg/entities"
 	"fmt"
 	"github.com/gofiber/fiber/v2"
 	"log"
-	"sidooh-enterprise-gateway/pkg/entities"
 	"strconv"
 )
 

@@ -1,12 +1,12 @@
 package main
 
 import (
+	"enterprise-gateway.sidooh/api/routes"
+	"enterprise-gateway.sidooh/pkg/enterprise"
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/cors"
 	"github.com/gofiber/fiber/v2/middleware/logger"
 	"log"
-	"sidooh-enterprise-gateway/api/routes"
-	"sidooh-enterprise-gateway/pkg/enterprise"
 )
 
 func main() {

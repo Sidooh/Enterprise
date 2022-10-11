@@ -1,11 +1,11 @@
 package handlers
 
 import (
+	"enterprise-gateway.sidooh/api/presenter"
+	"enterprise-gateway.sidooh/pkg/enterprise"
 	"errors"
 	"github.com/gofiber/fiber/v2"
 	"net/http"
-	"sidooh-enterprise-gateway/api/presenter"
-	"sidooh-enterprise-gateway/pkg/enterprise"
 )
 
 func GetEnterprise(service enterprise.Service) fiber.Handler {

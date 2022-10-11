@@ -1,9 +1,9 @@
 package routes
 
 import (
+	"enterprise-gateway.sidooh/api/handlers"
+	"enterprise-gateway.sidooh/pkg/enterprise"
 	"github.com/gofiber/fiber/v2"
-	"sidooh-enterprise-gateway/api/handlers"
-	"sidooh-enterprise-gateway/pkg/enterprise"
 )
 
 func EnterpriseRouter(app fiber.Router, service enterprise.Service) {

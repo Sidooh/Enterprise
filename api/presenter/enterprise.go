@@ -1,8 +1,8 @@
 package presenter
 
 import (
+	"enterprise-gateway.sidooh/pkg/entities"
 	"github.com/gofiber/fiber/v2"
-	"sidooh-enterprise-gateway/pkg/entities"
 )
 
 type Enterprise struct {
