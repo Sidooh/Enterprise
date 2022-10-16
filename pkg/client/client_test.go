@@ -2,6 +2,7 @@ package client
 
 import (
 	"encoding/json"
+	"github.com/spf13/viper"
 	"github.com/stretchr/testify/assert"
 	"io/ioutil"
 	"net/http"
@@ -73,11 +74,8 @@ func initTestClient(fn RoundTripFunc) {
 	}
 }
 
-func setEnv(t *testing.T, key string, value string) {
-	err := os.Setenv(key, value)
-	if err != nil {
-		t.Error(err)
-	}
+func setEnv(key string, value string) {
+	viper.Set(key, value)
 }
 
 func authSuccessRequest(t *testing.T) RoundTripFunc {
@@ -109,7 +107,7 @@ func authFailedRequest(t *testing.T) RoundTripFunc {
 }
 
 func TestApiClient_Authenticate(t *testing.T) {
-	setEnv(t, "ACCOUNTS_URL", "http://localhost:8000")
+	setEnv("ACCOUNTS_URL", "http://localhost:8000")
 
 	client.init("http://localhost:8000")
 	client.cache = nil

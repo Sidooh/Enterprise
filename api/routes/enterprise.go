@@ -7,5 +7,6 @@ import (
 )
 
 func EnterpriseRouter(app fiber.Router, service enterprise.Service) {
+	app.Get("/enterprises", handlers.GetEnterprises(service))
 	app.Get("/enterprises/:id", handlers.GetEnterprise(service))
 }

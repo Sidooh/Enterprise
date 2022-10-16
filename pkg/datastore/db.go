@@ -1,4 +1,4 @@
-package db
+package datastore
 
 import (
 	"enterprise.sidooh/utils"
@@ -14,7 +14,7 @@ import (
 )
 
 var (
-	db *gorm.DB
+	DB *gorm.DB
 )
 
 func Init() {
@@ -53,6 +53,5 @@ func Init() {
 		panic("failed to connect database")
 	}
 
-	db = gormDb
-	fmt.Println("Connected to Database")
+	DB = gormDb
 }

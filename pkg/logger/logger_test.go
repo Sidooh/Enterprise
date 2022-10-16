@@ -1,7 +1,7 @@
 package logger
 
 import (
-	"os"
+	"github.com/spf13/viper"
 	"testing"
 )
 
@@ -15,10 +15,7 @@ func TestLoggerInit(t *testing.T) {
 		t.Errorf("Init() = %v; want nil", ClientLog.Out)
 	}
 
-	err := os.Setenv("APP_ENV", "TEST")
-	if err != nil {
-		return
-	}
+	viper.Set("APP_ENV", "TEST")
 
 	Init()
 

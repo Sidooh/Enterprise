@@ -2,9 +2,11 @@ package main
 
 import (
 	"enterprise.sidooh/api"
-	"enterprise.sidooh/pkg/db"
+	"enterprise.sidooh/pkg/datastore"
 	"enterprise.sidooh/pkg/logger"
+	"enterprise.sidooh/utils"
 	"fmt"
+	"github.com/spf13/viper"
 	"log"
 	"os"
 	"os/signal"
@@ -12,13 +14,27 @@ import (
 )
 
 func main() {
+	utils.SetupConfig(".")
+
+	jwtKey := viper.GetString("JWT_KEY")
+	if len(jwtKey) == 0 {
+		panic("JWT_KEY is not set")
+	}
+
 	logger.Init()
-	db.Init()
+
+	datastore.Init()
+	//datastore.DB.AutoMigrate(&entities.Enterprise{})
+	//fmt.Println("Auto-migrated db")
 
 	app := api.Server()
 
+	port := viper.GetString("PORT")
+	if port == "" {
+		port = "8000"
+	}
 	go func() {
-		log.Fatal(app.Listen(":8006"))
+		log.Fatal(app.Listen(":" + port))
 	}()
 
 	c := make(chan os.Signal, 1)                    // Create channel to signify a signal being sent

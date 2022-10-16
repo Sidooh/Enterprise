@@ -1,20 +1,26 @@
 package presenter
 
 import (
-	"enterprise.sidooh/pkg/entities"
 	"github.com/gofiber/fiber/v2"
 )
 
 type Enterprise struct {
-	Id int `json:"id"`
+	Id uint `json:"id"`
 }
 
-func EnterpriseSuccessResponse(data *entities.Enterprise) *fiber.Map {
-	enterprise := Enterprise{Id: data.Id}
+func EnterprisesSuccessResponse(data *[]Enterprise) *fiber.Map {
+	return &fiber.Map{
+		"status": true,
+		"data":   data,
+	}
+}
+
+func EnterpriseSuccessResponse(data *Enterprise) *fiber.Map {
+	//enterprise := Enterprise{Id: data.Id}
 
 	return &fiber.Map{
 		"status": true,
-		"data":   enterprise,
+		"data":   data,
 	}
 }
 
