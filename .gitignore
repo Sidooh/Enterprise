@@ -1,2 +1,5 @@
 .idea
 .run
+.env
+*.log
+coverage.out

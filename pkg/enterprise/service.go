@@ -1,10 +1,10 @@
 package enterprise
 
 import (
-	"enterprise-gateway.sidooh/pkg/entities"
+	"enterprise.sidooh/pkg/entities"
+	"enterprise.sidooh/pkg/logger"
 	"fmt"
 	"github.com/gofiber/fiber/v2"
-	"log"
 	"strconv"
 )
 
@@ -19,9 +19,9 @@ type service struct {
 func (s *service) GetEnterprise(id int) (*entities.Enterprise, error) {
 
 	var e *entities.Enterprise
-	code, body, errors := s.apiClient.Get("http://localhost:8001/" + strconv.Itoa(id)).Struct(e)
+	code, body, errors := s.apiClient.Get("http://localhost:8001/enterprises/" + strconv.Itoa(id)).Struct(e)
 	if len(errors) > 0 {
-		log.Print(errors)
+		logger.ClientLog.Error(errors)
 		return nil, errors[0]
 	}
 

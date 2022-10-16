@@ -1,28 +1,30 @@
 package main
 
 import (
-	"enterprise-gateway.sidooh/api/routes"
-	"enterprise-gateway.sidooh/pkg/enterprise"
-	"github.com/gofiber/fiber/v2"
-	"github.com/gofiber/fiber/v2/middleware/cors"
-	"github.com/gofiber/fiber/v2/middleware/logger"
+	"enterprise.sidooh/api"
+	"enterprise.sidooh/pkg/db"
+	"enterprise.sidooh/pkg/logger"
+	"fmt"
 	"log"
+	"os"
+	"os/signal"
+	"syscall"
 )
 
 func main() {
-	app := fiber.New()
-	app.Use(cors.New())
-	app.Use(logger.New())
+	logger.Init()
+	db.Init()
 
-	app.Get("/", func(ctx *fiber.Ctx) error {
-		return ctx.JSON("Yaaay!!!")
-	})
+	app := api.Server()
 
-	api := app.Group("/api")
-	v1 := api.Group("/v1")
+	go func() {
+		log.Fatal(app.Listen(":8006"))
+	}()
 
-	//enterpriseService := enterprise.NewService()
-	routes.EnterpriseRouter(v1, enterprise.NewService())
+	c := make(chan os.Signal, 1)                    // Create channel to signify a signal being sent
+	signal.Notify(c, os.Interrupt, syscall.SIGTERM) // When an interrupt or termination signal is sent, notify the channel
 
-	log.Fatal(app.Listen(":8006"))
+	_ = <-c // This blocks the main thread until an interrupt is received
+	fmt.Println("Gracefully shutting down...")
+	_ = app.Shutdown()
 }

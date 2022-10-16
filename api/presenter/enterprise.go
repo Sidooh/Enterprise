@@ -1,7 +1,7 @@
 package presenter
 
 import (
-	"enterprise-gateway.sidooh/pkg/entities"
+	"enterprise.sidooh/pkg/entities"
 	"github.com/gofiber/fiber/v2"
 )
 

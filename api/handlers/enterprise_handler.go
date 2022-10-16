@@ -1,8 +1,8 @@
 package handlers
 
 import (
-	"enterprise-gateway.sidooh/api/presenter"
-	"enterprise-gateway.sidooh/pkg/enterprise"
+	"enterprise.sidooh/api/presenter"
+	"enterprise.sidooh/pkg/enterprise"
 	"errors"
 	"github.com/gofiber/fiber/v2"
 	"net/http"
