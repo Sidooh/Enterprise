@@ -2,7 +2,7 @@ package handlers
 
 import (
 	"enterprise.sidooh/api/presenter"
-	"enterprise.sidooh/pkg/enterprise"
+	"enterprise.sidooh/pkg/services/enterprise"
 	"enterprise.sidooh/utils"
 	"errors"
 	"github.com/gofiber/fiber/v2"
@@ -11,9 +11,6 @@ import (
 
 func GetEnterprise(service enterprise.Service) fiber.Handler {
 	return func(ctx *fiber.Ctx) error {
-		//var requestBody entities.Enterprise
-		//err := ctx.BodyParser(&requestBody)
-
 		id, err := ctx.ParamsInt("id")
 		if err != nil {
 			ctx.Status(http.StatusBadRequest)

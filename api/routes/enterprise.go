@@ -2,7 +2,7 @@ package routes
 
 import (
 	"enterprise.sidooh/api/handlers"
-	"enterprise.sidooh/pkg/enterprise"
+	"enterprise.sidooh/pkg/services/enterprise"
 	"github.com/gofiber/fiber/v2"
 )
 
