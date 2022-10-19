@@ -1,7 +1,6 @@
 package handlers
 
 import (
-	"enterprise.sidooh/api/presenter"
 	"enterprise.sidooh/pkg/services/enterprise"
 	"enterprise.sidooh/utils"
 	"errors"
@@ -14,7 +13,7 @@ func GetEnterprise(service enterprise.Service) fiber.Handler {
 		id, err := ctx.ParamsInt("id")
 		if err != nil {
 			ctx.Status(http.StatusBadRequest)
-			return ctx.JSON(presenter.EnterpriseErrorResponse(errors.New("invalid id parameter")))
+			return ctx.JSON(utils.ValidationErrorResponse(errors.New("invalid id parameter")))
 		}
 
 		fetched, err := service.GetEnterprise(id)

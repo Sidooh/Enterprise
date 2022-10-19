@@ -1,22 +1,24 @@
 package auth
 
-import "enterprise.sidooh/api/presenter"
+import (
+	"enterprise.sidooh/pkg/datastore"
+	"enterprise.sidooh/pkg/entities"
+)
 
 type Repository interface {
-	Register() (*presenter.Account, error)
-	Login() (*presenter.Account, error)
+	GetAccountByEmailWithEnterprise(email string) (*entities.AccountWithEnterprise, error)
 }
 type repository struct {
 }
 
-func (r repository) Register() (*presenter.Account, error) {
-	//TODO implement me
-	panic("implement me")
-}
+func (r *repository) GetAccountByEmailWithEnterprise(email string) (*entities.AccountWithEnterprise, error) {
+	var account entities.AccountWithEnterprise
+	result := datastore.DB.Where("accounts.email = ?", email).Joins("Enterprise").First(&account)
+	if result.Error != nil {
+		return nil, result.Error
+	}
 
-func (r repository) Login() (*presenter.Account, error) {
-	//TODO implement me
-	panic("implement me")
+	return &account, nil
 }
 
 func NewRepo() Repository {

@@ -24,8 +24,6 @@ func main() {
 	logger.Init()
 
 	datastore.Init()
-	//datastore.DB.AutoMigrate(&entities.Enterprise{})
-	//fmt.Println("Auto-migrated db")
 
 	app := api.Server()
 

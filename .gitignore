@@ -2,4 +2,4 @@
 .run
 .env
 *.log
-coverage.out
+coverage.*

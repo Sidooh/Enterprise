@@ -32,14 +32,14 @@ type ApiResponse struct {
 	Errors  []interface{} `json:"errors"`
 }
 
-func (api *ApiClient) init(baseUrl string) {
+func Init(baseUrl string) *ApiClient {
 	logger.ClientLog.Println("Init client: ", baseUrl)
 
-	// TODO: Review switching to http2
-	api.client = &http.Client{Timeout: 10 * time.Second}
-	api.baseUrl = baseUrl
-
-	api.cache = cache.Init[string, string]()
+	return &ApiClient{
+		client:  &http.Client{Timeout: 10 * time.Second},
+		baseUrl: baseUrl,
+		cache:   cache.Init[string, string](),
+	}
 }
 
 func (api *ApiClient) getUrl(endpoint string) string {
@@ -55,7 +55,7 @@ func (api *ApiClient) getUrl(endpoint string) string {
 	return api.baseUrl + endpoint
 }
 
-func (api *ApiClient) send(data interface{}) error {
+func (api *ApiClient) Send(data interface{}) error {
 	//TODO: Can we encode the data for security purposes and decode when necessary? Same to response logging...
 	logger.ClientLog.Println("API_REQ: ", api.request)
 	start := time.Now()
@@ -130,12 +130,12 @@ func (api *ApiClient) baseRequest(method string, endpoint string, body io.Reader
 	return api
 }
 
-func (api *ApiClient) newRequest(method string, endpoint string, body io.Reader) *ApiClient {
+func (api *ApiClient) NewRequest(method string, endpoint string, body io.Reader) *ApiClient {
 	if token := api.cache.GetString("token"); token == "" {
 		// TODO: Check if token has expired since we should be able to decode it
 		api.baseRequest(method, endpoint, body).request.Header.Add("Authorization", "Bearer "+token)
 	} else {
-		api.EnsureAuthenticated()
+		api.ensureAuthenticated()
 
 		//TODO: What will happen to client if cache fails to store token? E.g. when account srv is not reachable?
 		// TODO: Can we even just use a global Var?
@@ -146,20 +146,20 @@ func (api *ApiClient) newRequest(method string, endpoint string, body io.Reader)
 	return api
 }
 
-func (api *ApiClient) EnsureAuthenticated() {
+func (api *ApiClient) ensureAuthenticated() {
 	values := map[string]string{"email": "aa@a.a", "password": "12345678"}
 	jsonData, err := json.Marshal(values)
 
-	err = api.Authenticate(jsonData)
+	err = api.authenticate(jsonData)
 	if err != nil {
 		logger.ClientLog.Printf("error authenticating: %v", err)
 	}
 }
 
-func (api *ApiClient) Authenticate(data []byte) error {
+func (api *ApiClient) authenticate(data []byte) error {
 	var response = new(AuthResponse)
 
-	err := api.baseRequest(http.MethodPost, viper.GetString("ACCOUNTS_URL")+"/users/signin", bytes.NewBuffer(data)).send(response)
+	err := api.baseRequest(http.MethodPost, viper.GetString("ACCOUNTS_URL")+"/users/signin", bytes.NewBuffer(data)).Send(response)
 	if err != nil {
 		return err
 	}

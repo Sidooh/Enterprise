@@ -3,6 +3,7 @@ package api
 import (
 	"enterprise.sidooh/api/middleware"
 	"enterprise.sidooh/api/routes"
+	"enterprise.sidooh/pkg/client"
 	"enterprise.sidooh/pkg/services/auth"
 	"enterprise.sidooh/pkg/services/enterprise"
 	"enterprise.sidooh/utils"
@@ -12,6 +13,8 @@ import (
 	"github.com/gofiber/fiber/v2/middleware/favicon"
 	"github.com/gofiber/fiber/v2/middleware/limiter"
 	fiberLogger "github.com/gofiber/fiber/v2/middleware/logger"
+	"github.com/gofiber/fiber/v2/middleware/recover"
+	"github.com/spf13/viper"
 	"net/http"
 )
 
@@ -32,6 +35,7 @@ func setMiddleware(app *fiber.App) {
 
 	app.Use(cors.New())
 	app.Use(limiter.New())
+	app.Use(recover.New())
 	app.Use(fiberLogger.New(fiberLogger.Config{Output: utils.GetLogFile("server.log")}))
 
 	app.Use(favicon.New(favicon.Config{Next: func(c *fiber.Ctx) bool {
@@ -56,13 +60,20 @@ func setHandlers(app *fiber.App) {
 	api := app.Group("/api")
 	v1 := api.Group("/v1")
 
-	routes.AuthRouter(v1, auth.NewService(auth.NewRepo()))
-	routes.EnterpriseRouter(v1, enterprise.NewService(enterprise.NewRepo()))
+	authRep := auth.NewRepo()
+	accountApi := client.InitAccountClient()
+	authSrv := auth.NewService(authRep, accountApi)
+
+	enterpriseRep := enterprise.NewRepo()
+	enterpriseSrv := enterprise.NewService(enterpriseRep)
+
+	routes.AuthRouter(v1, authSrv)
+	routes.EnterpriseRouter(v1, enterpriseSrv)
 }
 
 func Server() *fiber.App {
 	app := fiber.New(fiber.Config{
-		Prefork: true,
+		Prefork: viper.GetBool("PREFORK"),
 	})
 
 	setMiddleware(app)

@@ -12,9 +12,10 @@ import (
 	"testing"
 )
 
-var client ApiClient
+var client *ApiClient
 
 func TestMain(m *testing.M) {
+	client = Init("")
 	os.Exit(m.Run())
 }
 
@@ -107,26 +108,22 @@ func authFailedRequest(t *testing.T) RoundTripFunc {
 }
 
 func TestApiClient_Authenticate(t *testing.T) {
-	setEnv("ACCOUNTS_URL", "http://localhost:8000")
-
-	client.init("http://localhost:8000")
-	client.cache = nil
+	client.baseUrl = "http://localhost:8000"
 
 	initTestClient(authSuccessRequest(t))
 
 	values := map[string]string{"email": "aa@a.a", "password": "12345678"}
 	jsonData, err := json.Marshal(values)
 
-	err = client.Authenticate(jsonData)
+	err = client.authenticate(jsonData)
 	if err != nil {
 		t.Error(err)
 	}
 
 	// Test cache
-	client.init("http://localhost:8000")
 	initTestClient(authSuccessRequest(t))
 
-	err = client.Authenticate(jsonData)
+	err = client.authenticate(jsonData)
 	if err != nil {
 		t.Error(err)
 	}
@@ -144,5 +141,5 @@ func TestApiClient_Authenticate(t *testing.T) {
 	}()
 
 	initTestClient(authFailedRequest(t))
-	err = client.Authenticate(jsonData)
+	err = client.authenticate(jsonData)
 }

@@ -44,6 +44,9 @@ func Register(service auth.Service) fiber.Handler {
 			return ctx.Status(http.StatusUnprocessableEntity).JSON(err)
 		}
 
+		// TODO: Check password rules
+		// use owasp recommendations
+
 		register, err := service.Register(presenter.Registration{
 			Name:          "",
 			Country:       "",
@@ -65,13 +68,19 @@ func Register(service auth.Service) fiber.Handler {
 
 func Login(service auth.Service) fiber.Handler {
 	return func(ctx *fiber.Ctx) error {
-		var requestBody LoginRequest
-		err := ctx.BodyParser(&requestBody)
-		if err != nil {
-			ctx.Status(http.StatusBadRequest)
-			return ctx.JSON(utils.HandleErrorResponse(ctx, err))
+		var request LoginRequest
+		if err := middleware.BindAndValidateRequest(ctx, &request); err != nil {
+			return ctx.Status(http.StatusUnprocessableEntity).JSON(err)
 		}
 
-		return utils.HandleSuccessResponse(ctx, ctx.Get("Authorization"))
+		authData, err := service.Login(presenter.Login{
+			Email:    request.Email,
+			Password: request.Password,
+		})
+		if err != nil {
+			return utils.HandleErrorResponse(ctx, err)
+		}
+
+		return utils.HandleSuccessResponse(ctx, authData)
 	}
 }

@@ -1,9 +1,11 @@
 package utils
 
 import (
+	"errors"
 	"github.com/gofiber/fiber/v2"
 	jsoniter "github.com/json-iterator/go"
 	log "github.com/sirupsen/logrus"
+	"gorm.io/gorm"
 	"net/http"
 )
 
@@ -45,6 +47,10 @@ func ServerErrorResponse() JsonResponse {
 	return ErrorResponse("something went wrong, please try again", nil)
 }
 
+func UnauthorizedErrorResponse() JsonResponse {
+	return ErrorResponse("invalid credentials", nil)
+}
+
 func NotFoundErrorResponse() JsonResponse {
 	return ErrorResponse("not found", nil)
 }
@@ -56,8 +62,12 @@ func ValidationErrorResponse(errors interface{}) JsonResponse {
 func HandleErrorResponse(ctx *fiber.Ctx, err error) error {
 	log.Error(err)
 
-	if err.Error() == "record not found" {
+	if errors.Is(err, gorm.ErrRecordNotFound) {
 		return ctx.Status(http.StatusNotFound).JSON(NotFoundErrorResponse())
+	}
+
+	if err.Error() == "invalid credentials" {
+		return ctx.Status(http.StatusUnauthorized).JSON(UnauthorizedErrorResponse())
 	}
 
 	return ctx.Status(http.StatusInternalServerError).JSON(ServerErrorResponse())

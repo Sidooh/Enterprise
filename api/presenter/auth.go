@@ -1,9 +1,5 @@
 package presenter
 
-type Account struct {
-	Id uint `json:"id"`
-}
-
 type Registration struct {
 	Name          string `json:"name"`
 	Country       string `json:"country"`
@@ -19,4 +15,9 @@ type Registration struct {
 type Login struct {
 	Email    string `json:"email"`
 	Password string `json:"password"`
+}
+
+type LoginResponse struct {
+	Token string   `json:"token"`
+	Admin *Account `json:"admin"`
 }
