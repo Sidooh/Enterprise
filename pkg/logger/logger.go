@@ -14,10 +14,9 @@ func Init() {
 	ClientLog = log.New()
 
 	env := viper.GetString("APP_ENV")
-	if env != "TEST" {
 
+	if env != "TEST" {
 		file := utils.GetLogFile("client.log")
 		ClientLog.SetOutput(file)
-
 	}
 }

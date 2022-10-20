@@ -3,6 +3,7 @@ module enterprise.sidooh
 go 1.18
 
 require (
+	github.com/Permify/permify-gorm v1.0.0
 	github.com/go-playground/validator v9.31.0+incompatible
 	github.com/gofiber/fiber/v2 v2.38.1
 	github.com/jellydator/ttlcache/v3 v3.0.0
@@ -16,7 +17,6 @@ require (
 )
 
 require (
-	github.com/Permify/permify-gorm v1.0.0 // indirect
 	github.com/andybalholm/brotli v1.0.4 // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/fsnotify/fsnotify v1.5.4 // indirect

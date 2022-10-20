@@ -3,7 +3,7 @@ package entities
 type Enterprise struct {
 	ModelID
 
-	Name    string `json:"name" gorm:"uniqueIndex"`
+	Name    string `json:"name" gorm:"unique"`
 	Country string `json:"country"`
 	Address string `json:"address"`
 	Phone   string `json:"phone" gorm:"unique"`
