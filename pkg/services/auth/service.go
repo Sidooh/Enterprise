@@ -39,6 +39,8 @@ func (s *service) Login(data presenter.Login) (*presenter.LoginResponse, error) 
 		return nil, errors.New("invalid credentials")
 	}
 
+	//	TODO: Check if enterprise is valid - id should not be 0
+
 	jsonData, err := json.Marshal(data)
 	dataBytes := bytes.NewBuffer(jsonData)
 
