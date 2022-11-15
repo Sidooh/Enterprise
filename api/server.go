@@ -2,10 +2,12 @@ package api
 
 import (
 	"enterprise.sidooh/api/middleware"
+	"enterprise.sidooh/api/middleware/jwt"
 	"enterprise.sidooh/api/routes"
 	"enterprise.sidooh/pkg/client"
 	"enterprise.sidooh/pkg/services/auth"
 	"enterprise.sidooh/pkg/services/enterprise"
+	"enterprise.sidooh/pkg/services/user"
 	"enterprise.sidooh/utils"
 	"github.com/go-playground/validator"
 	"github.com/gofiber/fiber/v2"
@@ -14,8 +16,10 @@ import (
 	"github.com/gofiber/fiber/v2/middleware/limiter"
 	fiberLogger "github.com/gofiber/fiber/v2/middleware/logger"
 	"github.com/gofiber/fiber/v2/middleware/recover"
+	"github.com/gofiber/helmet/v2"
 	"github.com/spf13/viper"
 	"net/http"
+	"time"
 )
 
 func setMiddleware(app *fiber.App) {
@@ -33,6 +37,7 @@ func setMiddleware(app *fiber.App) {
 		return c.Next()
 	})
 
+	app.Use(helmet.New())
 	app.Use(cors.New())
 	app.Use(limiter.New())
 	app.Use(recover.New())
@@ -43,6 +48,7 @@ func setMiddleware(app *fiber.App) {
 	}}))
 
 	middleware.Validator = validator.New()
+
 }
 
 func setHealthCheckRoutes(app *fiber.App) {
@@ -64,11 +70,21 @@ func setHandlers(app *fiber.App) {
 	accountApi := client.InitAccountClient()
 	authSrv := auth.NewService(authRep, accountApi)
 
+	userRep := user.NewRepo()
+	userSrv := user.NewService(userRep)
+
 	enterpriseRep := enterprise.NewRepo()
 	enterpriseSrv := enterprise.NewService(enterpriseRep)
 
 	routes.AuthRouter(v1, authSrv)
+
+	app.Use(jwt.New(jwt.Config{
+		Secret: viper.GetString("JWT_KEY"),
+		Expiry: time.Duration(15) * time.Minute,
+	}))
+
 	routes.EnterpriseRouter(v1, enterpriseSrv)
+	routes.UserRouter(v1, userSrv)
 }
 
 func Server() *fiber.App {

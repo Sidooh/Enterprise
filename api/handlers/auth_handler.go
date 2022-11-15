@@ -6,7 +6,9 @@ import (
 	"enterprise.sidooh/pkg/services/auth"
 	"enterprise.sidooh/utils"
 	"github.com/gofiber/fiber/v2"
+	"github.com/golang-jwt/jwt/v4"
 	"net/http"
+	"strings"
 )
 
 type LoginRequest struct {
@@ -15,15 +17,13 @@ type LoginRequest struct {
 }
 
 type RegisterRequest struct {
-	Name          string `json:"name" validate:"required"`
-	Country       string `json:"country" validate:"required"`
-	Address       string `json:"address" validate:"required"`
-	Phone         string `json:"phone" validate:"required,numeric,min=9"`
-	Email         string `json:"email" validate:"required,email"`
-	AdminName     string `json:"admin_name" validate:"required"`
-	AdminPhone    string `json:"admin_phone" validate:"required,numeric,min=9"`
-	AdminEmail    string `json:"admin_email" validate:"required,email"`
-	AdminPassword string `json:"admin_password" validate:"required,min=8,max=64"`
+	Name string `json:"name" validate:"required"`
+	//Country       string `json:"country" validate:"required"`
+	//Address       string `json:"address" validate:"required"`
+	Phone     string `json:"phone" validate:"required,numeric,min=9"`
+	Email     string `json:"email" validate:"required,email"`
+	AdminName string `json:"admin_name" validate:"required"`
+	Password  string `json:"password" validate:"required,min=8,max=64"`
 }
 
 type LoginResponse struct {
@@ -31,9 +31,16 @@ type LoginResponse struct {
 	RefreshToken string `json:"refresh_token,omitempty"`
 }
 
-func GetAuthAccount(service auth.Service) fiber.Handler {
+func GetAuthUser(service auth.Service) fiber.Handler {
 	return func(ctx *fiber.Ctx) error {
-		return utils.HandleSuccessResponse(ctx, ctx.Get("Authorization"))
+		claims := ctx.Locals("jwtClaims").(jwt.MapClaims)
+
+		user, err := service.User(int(claims["id"].(float64)))
+		if err != nil {
+			return utils.HandleErrorResponse(ctx, err)
+		}
+
+		return utils.HandleSuccessResponse(ctx, user)
 	}
 }
 
@@ -48,15 +55,11 @@ func Register(service auth.Service) fiber.Handler {
 		// use owasp recommendations
 
 		register, err := service.Register(presenter.Registration{
-			Name:          "",
-			Country:       "",
-			Address:       "",
-			Phone:         "",
-			Email:         "",
-			AdminName:     "",
-			AdminPhone:    "",
-			AdminEmail:    "",
-			AdminPassword: "",
+			Name:      request.Name,
+			AdminName: request.AdminName,
+			Phone:     request.Phone,
+			Email:     request.Phone,
+			Password:  request.Password,
 		})
 		if err != nil {
 			return utils.HandleErrorResponse(ctx, err)
@@ -75,7 +78,7 @@ func Login(service auth.Service) fiber.Handler {
 
 		authData, err := service.Login(presenter.Login{
 			Email:    request.Email,
-			Password: request.Password,
+			Password: strings.TrimSpace(request.Password),
 		})
 		if err != nil {
 			return utils.HandleErrorResponse(ctx, err)

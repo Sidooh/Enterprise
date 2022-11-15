@@ -4,7 +4,6 @@ import (
 	"enterprise.sidooh/pkg/entities"
 	"enterprise.sidooh/utils"
 	"errors"
-	"fmt"
 	permify "github.com/Permify/permify-gorm"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
@@ -53,20 +52,28 @@ func Init() {
 	}
 
 	if err != nil {
-		logrus.Println(err)
+		logrus.Error(err)
 		panic("failed to connect database")
 	}
 
 	if viper.GetBool("MIGRATE_DB") {
-		gormDb.AutoMigrate(&entities.Enterprise{}, &entities.Account{})
-		fmt.Println("Auto-migrated db")
+		err := gormDb.AutoMigrate(&entities.Enterprise{}, &entities.User{}, &entities.Account{})
+		if err != nil {
+			logrus.Error(err)
+			panic("failed to auto-migrate")
+		}
+		logrus.Println("Auto-migrated db")
 	}
 
 	// setup permify
-	Permify, _ = permify.New(permify.Options{
+	Permify, err = permify.New(permify.Options{
 		Migrate: viper.GetBool("MIGRATE_DB"),
 		DB:      gormDb,
 	})
+	if err != nil {
+		logrus.Error(err)
+		panic("failed to migrate permissions")
+	}
 
 	DB = gormDb
 }

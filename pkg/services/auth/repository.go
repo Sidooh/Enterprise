@@ -6,19 +6,30 @@ import (
 )
 
 type Repository interface {
-	GetAccountByEmailWithEnterprise(email string) (*entities.AccountWithEnterprise, error)
+	GetUserByEmailWithEnterprise(email string) (*entities.UserWithEnterprise, error)
+	GetUserByIdWithEnterprise(id int) (*entities.UserWithEnterprise, error)
 }
 type repository struct {
 }
 
-func (r *repository) GetAccountByEmailWithEnterprise(email string) (*entities.AccountWithEnterprise, error) {
-	var account entities.AccountWithEnterprise
-	result := datastore.DB.Where("accounts.email = ?", email).Joins("Enterprise").First(&account)
+func (r *repository) GetUserByEmailWithEnterprise(email string) (*entities.UserWithEnterprise, error) {
+	var user entities.UserWithEnterprise
+	result := datastore.DB.Where("users.email = ?", email).Joins("Enterprise").First(&user)
 	if result.Error != nil {
 		return nil, result.Error
 	}
 
-	return &account, nil
+	return &user, nil
+}
+
+func (r *repository) GetUserByIdWithEnterprise(id int) (*entities.UserWithEnterprise, error) {
+	var user entities.UserWithEnterprise
+	result := datastore.DB.Where("users.id = ?", id).Joins("Enterprise").First(&user)
+	if result.Error != nil {
+		return nil, result.Error
+	}
+
+	return &user, nil
 }
 
 func NewRepo() Repository {

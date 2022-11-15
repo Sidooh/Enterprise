@@ -1,7 +1,5 @@
 package entities
 
-import "github.com/Permify/permify-gorm/models"
-
 type Account struct {
 	ModelID
 
@@ -11,9 +9,6 @@ type Account struct {
 
 	AccountId    uint `json:"account_id" gorm:"uniqueIndex"`
 	EnterpriseId uint `json:"enterprise_id" gorm:"uniqueIndex"`
-
-	// permify
-	Roles []models.Role `gorm:"many2many:user_roles;OnUpdate:CASCADE,OnDelete:CASCADE;joinForeignKey:UserId"`
 
 	ModelTimeStamps
 }

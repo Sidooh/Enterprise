@@ -1,15 +1,17 @@
 package auth
 
 import (
-	"bytes"
-	"encoding/json"
+	jwt2 "enterprise.sidooh/api/middleware/jwt"
 	"enterprise.sidooh/api/presenter"
 	"enterprise.sidooh/pkg/client"
 	"enterprise.sidooh/pkg/datastore"
+	"enterprise.sidooh/utils"
 	"errors"
 	"github.com/Permify/permify-gorm/options"
+	"github.com/golang-jwt/jwt/v4"
 	log "github.com/sirupsen/logrus"
-	"net/http"
+	"github.com/spf13/viper"
+	"time"
 )
 
 type AuthResponse struct {
@@ -17,6 +19,7 @@ type AuthResponse struct {
 }
 
 type Service interface {
+	User(id int) (*presenter.User, error)
 	Register(data presenter.Registration) (*[]presenter.Enterprise, error)
 	Login(data presenter.Login) (*presenter.LoginResponse, error)
 }
@@ -26,30 +29,70 @@ type service struct {
 	repository Repository
 }
 
+func (s *service) User(id int) (*presenter.User, error) {
+	user, err := s.repository.GetUserByIdWithEnterprise(id)
+	if err != nil {
+		log.Error(err)
+		return nil, errors.New("unauthorized")
+	}
+
+	roles, totalCount, err := datastore.Permify.GetRolesOfUser(user.Id, options.RoleOption{
+		WithPermissions: true, // preload role's permissions
+	})
+	if err != nil {
+		return nil, err
+	}
+	if totalCount == 0 {
+		return nil, errors.New("unauthorized")
+	}
+
+	userData := &presenter.User{
+		Id:    user.Id,
+		Name:  user.Name,
+		Email: user.Email,
+		Enterprise: presenter.Enterprise{
+			Id:      user.Enterprise.Id,
+			Name:    user.Enterprise.Name,
+			Country: user.Enterprise.Country,
+			Address: user.Enterprise.Address,
+			Phone:   user.Enterprise.Phone,
+			Email:   user.Enterprise.Email,
+		},
+		Roles:       roles.Names(),
+		Permissions: roles.Permissions().Names(),
+	}
+
+	return userData, err
+}
+
 func (s *service) Register(data presenter.Registration) (*[]presenter.Enterprise, error) {
 	//TODO implement me
 	panic("implement me")
+
+	// 1. Create/get Sidooh account
+
+	// 2. Create Enterprise
+
+	// 3. Create User
+
+	// 4. Create Float account
+
 }
 
 func (s *service) Login(data presenter.Login) (*presenter.LoginResponse, error) {
-	// TODO: Check the email exists in Ent Accs, fetch with Enterprise to make it more efficient
-	account, err := s.repository.GetAccountByEmailWithEnterprise(data.Email)
+	user, err := s.repository.GetUserByEmailWithEnterprise(data.Email)
 	if err != nil {
 		log.Error(err)
 		return nil, errors.New("invalid credentials")
 	}
 
-	jsonData, err := json.Marshal(data)
-	dataBytes := bytes.NewBuffer(jsonData)
+	res := utils.Compare(user.Password, data.Password)
 
-	var authResponse = new(AuthResponse)
-
-	err = s.api.NewRequest(http.MethodPost, "/users/signin", dataBytes).Send(authResponse)
-	if err != nil {
-		return nil, err
+	if !res {
+		return nil, errors.New("invalid credentials")
 	}
 
-	roles, totalCount, err := datastore.Permify.GetRolesOfUser(account.Id, options.RoleOption{
+	roles, totalCount, err := datastore.Permify.GetRolesOfUser(user.Id, options.RoleOption{
 		WithPermissions: true, // preload role's permissions
 	})
 	if err != nil {
@@ -59,24 +102,30 @@ func (s *service) Login(data presenter.Login) (*presenter.LoginResponse, error) 
 		return nil, errors.New("invalid credentials")
 	}
 
-	accountData := &presenter.Account{
-		Id:    account.Id,
-		Phone: account.Phone,
-		Name:  account.Name,
-		Email: account.Email,
+	validity := time.Duration(viper.GetInt("ACCESS_TOKEN_VALIDITY")) * time.Minute
+	token, err := jwt2.Encode(&jwt.MapClaims{
+		"name":  user.Name,
+		"email": user.Email,
+		"id":    user.Id,
+	}, validity)
+
+	userData := &presenter.User{
+		Id:    user.Id,
+		Name:  user.Name,
+		Email: user.Email,
 		Enterprise: presenter.Enterprise{
-			Id:      account.Enterprise.Id,
-			Name:    account.Enterprise.Name,
-			Country: account.Enterprise.Country,
-			Address: account.Enterprise.Address,
-			Phone:   account.Enterprise.Phone,
-			Email:   account.Enterprise.Email,
+			Id:      user.Enterprise.Id,
+			Name:    user.Enterprise.Name,
+			Country: user.Enterprise.Country,
+			Address: user.Enterprise.Address,
+			Phone:   user.Enterprise.Phone,
+			Email:   user.Enterprise.Email,
 		},
 		Roles:       roles.Names(),
 		Permissions: roles.Permissions().Names(),
 	}
 
-	response := &presenter.LoginResponse{Token: authResponse.Token, Admin: accountData}
+	response := &presenter.LoginResponse{Token: token, User: userData}
 
 	return response, err
 }
