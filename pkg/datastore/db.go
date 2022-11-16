@@ -13,6 +13,7 @@ import (
 	"gorm.io/gorm/logger"
 	"log"
 	"strings"
+	"time"
 )
 
 var (
@@ -49,6 +50,10 @@ func Init() {
 		}
 
 		gormDb, err = gorm.Open(mysql.Open(dsn), config)
+		db, _ := gormDb.DB()
+		db.SetMaxIdleConns(0)
+		db.SetMaxOpenConns(100)
+		db.SetConnMaxLifetime(time.Hour)
 	}
 
 	if err != nil {

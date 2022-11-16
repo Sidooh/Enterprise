@@ -131,7 +131,7 @@ func (api *ApiClient) baseRequest(method string, endpoint string, body io.Reader
 }
 
 func (api *ApiClient) NewRequest(method string, endpoint string, body io.Reader) *ApiClient {
-	if token := api.cache.GetString("token"); token == "" {
+	if token := api.cache.GetString("token"); token != "" {
 		// TODO: Check if token has expired since we should be able to decode it
 		api.baseRequest(method, endpoint, body).request.Header.Add("Authorization", "Bearer "+token)
 	} else {
@@ -159,7 +159,7 @@ func (api *ApiClient) ensureAuthenticated() {
 func (api *ApiClient) authenticate(data []byte) error {
 	var response = new(AuthResponse)
 
-	err := api.baseRequest(http.MethodPost, viper.GetString("ACCOUNTS_URL")+"/users/signin", bytes.NewBuffer(data)).Send(response)
+	err := api.baseRequest(http.MethodPost, viper.GetString("SIDOOH_ACCOUNTS_API_URL")+"/users/signin", bytes.NewBuffer(data)).Send(response)
 	if err != nil {
 		return err
 	}

@@ -8,7 +8,7 @@ import (
 	"strings"
 )
 
-func ToHash(password string) (string, error) {
+func HashPassword(password string) (string, error) {
 	salt := make([]byte, 8)
 	_, err := rand.Read(salt)
 	if err != nil {
@@ -20,7 +20,7 @@ func ToHash(password string) (string, error) {
 	return fmt.Sprintf("%v.%v", hex.EncodeToString(buf), hex.EncodeToString(salt)), nil
 }
 
-func Compare(storedPassword string, suppliedPassword string) bool {
+func VerifyPassword(storedPassword string, suppliedPassword string) bool {
 	split := strings.Split(storedPassword, ".")
 	if len(split) < 2 {
 		return false

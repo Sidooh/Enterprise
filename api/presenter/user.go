@@ -1,6 +1,12 @@
 package presenter
 
 type User struct {
+	Id    uint   `json:"id"`
+	Name  string `json:"name"`
+	Email string `json:"email"`
+}
+
+type UserWithRelations struct {
 	Id          uint       `json:"id"`
 	Name        string     `json:"name"`
 	Email       string     `json:"email"`

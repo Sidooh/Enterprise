@@ -16,6 +16,6 @@ type Login struct {
 }
 
 type LoginResponse struct {
-	Token string `json:"token"`
-	User  *User  `json:"user"`
+	Token string             `json:"token"`
+	User  *UserWithRelations `json:"user"`
 }

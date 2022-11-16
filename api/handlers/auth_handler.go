@@ -7,6 +7,7 @@ import (
 	"enterprise.sidooh/utils"
 	"github.com/gofiber/fiber/v2"
 	"github.com/golang-jwt/jwt/v4"
+	"github.com/hesahesa/pwdbro"
 	"net/http"
 	"strings"
 )
@@ -54,15 +55,36 @@ func Register(service auth.Service) fiber.Handler {
 		// TODO: Check password rules
 		// use owasp recommendations
 
+		// OWASP placeholder
+		pwd := pwdbro.NewDefaultPwdBro()
+		status, err := pwd.RunParallelChecks(request.Password)
+		if err != nil {
+			return utils.HandleErrorResponse(ctx, err)
+		}
+
+		for _, resp := range status {
+			// in practice, you will want to evaluate based on the
+			// resp.Safe field and not just printing it\
+			if !resp.Safe {
+				return ctx.Status(http.StatusUnprocessableEntity).JSON(utils.ValidationErrorResponse(utils.ValidationError{
+					Field:   "password",
+					Message: "password does not meet requirements",
+					Param:   "password",
+					Value:   request.Password,
+				}))
+			}
+		}
+
 		register, err := service.Register(presenter.Registration{
 			Name:      request.Name,
 			AdminName: request.AdminName,
 			Phone:     request.Phone,
-			Email:     request.Phone,
+			Email:     request.Email,
 			Password:  request.Password,
 		})
 		if err != nil {
-			return utils.HandleErrorResponse(ctx, err)
+			return ctx.Status(http.StatusUnprocessableEntity).JSON(utils.ValidationErrorResponse(err))
+			//return utils.HandleErrorResponse(ctx, err)
 		}
 
 		return utils.HandleSuccessResponse(ctx, register)

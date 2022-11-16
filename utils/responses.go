@@ -1,6 +1,7 @@
 package utils
 
 import (
+	"enterprise.sidooh/pkg"
 	"errors"
 	"github.com/gofiber/fiber/v2"
 	jsoniter "github.com/json-iterator/go"
@@ -59,6 +60,10 @@ func ValidationErrorResponse(errors interface{}) JsonResponse {
 	return ErrorResponse("the request is invalid", errors)
 }
 
+func SimpleValidationErrorResponse(error error) JsonResponse {
+	return ErrorResponse("the request is invalid", error.Error())
+}
+
 func HandleErrorResponse(ctx *fiber.Ctx, err error) error {
 	log.Error(err)
 
@@ -68,6 +73,11 @@ func HandleErrorResponse(ctx *fiber.Ctx, err error) error {
 
 	if err.Error() == "invalid credentials" {
 		return ctx.Status(http.StatusUnauthorized).JSON(UnauthorizedErrorResponse())
+	}
+
+	// TODO: Handle simple one line errors
+	if errors.Is(err, pkg.ErrInvalidEnterprise) || errors.Is(err, pkg.ErrInvalidUser) {
+		return ctx.Status(http.StatusUnauthorized).JSON(SimpleValidationErrorResponse(err))
 	}
 
 	return ctx.Status(http.StatusInternalServerError).JSON(ServerErrorResponse())
