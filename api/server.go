@@ -58,6 +58,7 @@ func setHealthCheckRoutes(app *fiber.App) {
 
 	app.Get("/500", func(ctx *fiber.Ctx) error {
 		ctx.Status(http.StatusInternalServerError)
+
 		return ctx.JSON("500")
 	})
 }
