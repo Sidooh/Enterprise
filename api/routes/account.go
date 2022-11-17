@@ -8,5 +8,6 @@ import (
 
 func AccountRouter(app fiber.Router, service account.Service) {
 	app.Get("/accounts", handlers.GetAccounts(service))
+	app.Post("/accounts", handlers.CreateAccount(service))
 	app.Get("/accounts/:id", handlers.GetAccount(service))
 }

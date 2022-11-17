@@ -7,5 +7,7 @@ var (
 
 	ErrInvalidUser = errors.New("user details are invalid")
 
+	ErrInvalidAccount = errors.New("account details are invalid")
+
 	ErrUnauthorized = errors.New("unauthorized")
 )

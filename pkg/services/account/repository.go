@@ -9,15 +9,16 @@ import (
 
 //Repository interface allows us to access the CRUD Operations here.
 type Repository interface {
-	//CreateAccount(account *entities.Account) (*entities.Account, error)
 	ReadAccounts() (*[]presenter.Account, error)
 	ReadAccount(id int) (*presenter.Account, error)
+	CreateAccount(account *entities.Account) (*entities.Account, error)
 	//ReadAccountByEmailOrPhone(email string, phone string) (*presenter.Account, error)
 	//UpdateAccount(account *entities.Account, column string, value interface{}) (*entities.Account, error)
 	//DeleteAccount(Id uint) error
 
 	ReadEnterpriseAccounts(enterpriseId int) (*[]presenter.Account, error)
 	ReadEnterpriseAccount(enterpriseId int, id int) (*presenter.Account, error)
+	ReadEnterpriseAccountByPhone(enterpriseId int, phone string) (*presenter.Account, error)
 }
 type repository struct {
 }
@@ -51,15 +52,15 @@ func (r *repository) ReadAccount(id int) (*presenter.Account, error) {
 	return &account, nil
 }
 
-func (r *repository) ReadAccountByEmailOrPhone(email string, phone string) (*presenter.Account, error) {
-	var account presenter.Account
-	result := datastore.DB.Where("email", email).Or("phone LIKE ?", fmt.Sprintf("%%%s%%", phone)).First(&account)
-	if result.Error != nil {
-		return nil, result.Error
-	}
-
-	return &account, nil
-}
+//func (r *repository) ReadAccountByEmailOrPhone(email string, phone string) (*presenter.Account, error) {
+//	var account presenter.Account
+//	result := datastore.DB.Where("email", email).Or("phone LIKE ?", fmt.Sprintf("%%%s%%", phone)).First(&account)
+//	if result.Error != nil {
+//		return nil, result.Error
+//	}
+//
+//	return &account, nil
+//}
 
 func (r *repository) UpdateAccount(account *entities.Account, column string, value interface{}) (*entities.Account, error) {
 	result := datastore.DB.Model(&account).Update(column, value)
@@ -87,6 +88,16 @@ func (r *repository) ReadEnterpriseAccounts(enterpriseId int) (*[]presenter.Acco
 func (r *repository) ReadEnterpriseAccount(enterpriseId int, id int) (*presenter.Account, error) {
 	var account presenter.Account
 	result := datastore.DB.Where("enterprise_id", enterpriseId).First(&account, id)
+	if result.Error != nil {
+		return nil, result.Error
+	}
+
+	return &account, nil
+}
+
+func (r *repository) ReadEnterpriseAccountByPhone(enterpriseId int, phone string) (*presenter.Account, error) {
+	var account presenter.Account
+	result := datastore.DB.Where("enterprise_id", enterpriseId).Where("phone LIKE ?", fmt.Sprintf("%%%s%%", phone)).First(&account)
 	if result.Error != nil {
 		return nil, result.Error
 	}

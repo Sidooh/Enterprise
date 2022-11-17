@@ -80,7 +80,7 @@ func HandleErrorResponse(ctx *fiber.Ctx, err error) error {
 	}
 
 	// TODO: Handle simple one line errors
-	if errors.Is(err, pkg.ErrInvalidEnterprise) || errors.Is(err, pkg.ErrInvalidUser) {
+	if errors.Is(err, pkg.ErrInvalidEnterprise) || errors.Is(err, pkg.ErrInvalidUser) || errors.Is(err, pkg.ErrInvalidAccount) {
 		return ctx.Status(http.StatusUnauthorized).JSON(SimpleValidationErrorResponse(err))
 	}
 

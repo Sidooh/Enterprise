@@ -8,6 +8,7 @@ import (
 	"enterprise.sidooh/pkg/client"
 	"enterprise.sidooh/pkg/datastore"
 	"enterprise.sidooh/pkg/entities"
+	"enterprise.sidooh/pkg/services"
 	"enterprise.sidooh/pkg/services/enterprise"
 	"enterprise.sidooh/pkg/services/user"
 	"enterprise.sidooh/utils"
@@ -29,31 +30,6 @@ type service struct {
 	authRepository       Repository
 	enterpriseRepository enterprise.Repository
 	userRepository       user.Repository
-}
-
-type Account struct {
-	Id     int    `json:"id"`
-	Phone  string `json:"phone"`
-	Active bool   `json:"active"`
-}
-
-type FloatAccount struct {
-	Id            int    `json:"id"`
-	AccountId     int    `json:"account_id"`
-	FloatableId   int    `json:"floatable_id"`
-	FloatableType string `json:"floatable_type"`
-}
-
-type AccountApiResponse struct {
-	client.ApiResponse
-
-	Data Account `json:"data"`
-}
-
-type FloatAccountApiResponse struct {
-	client.ApiResponse
-
-	Data FloatAccount `json:"data"`
 }
 
 func (s *service) User(id int) (*presenter.UserWithRelations, error) {
@@ -80,7 +56,7 @@ func (s *service) Register(data presenter.Registration) (*presenter.EnterpriseWi
 	}
 
 	// 1. Create/get Sidooh account
-	var apiResponse = new(AccountApiResponse)
+	var apiResponse = new(services.AccountApiResponse)
 
 	jsonData, err := json.Marshal(map[string]string{"phone": data.Phone})
 	dataBytes := bytes.NewBuffer(jsonData)
@@ -126,7 +102,7 @@ func (s *service) Register(data presenter.Registration) (*presenter.EnterpriseWi
 	// 4. Create Float account
 	updatedEnterprise := enterprise
 
-	var response = new(FloatAccountApiResponse)
+	var response = new(services.FloatAccountApiResponse)
 
 	jsonData, err = json.Marshal(map[string]string{
 		"initiator":  "ENTERPRISE",
@@ -175,13 +151,6 @@ func (s *service) Login(data presenter.Login) (*presenter.LoginResponse, error) 
 	if !res {
 		return nil, pkg.ErrUnauthorized
 	}
-
-	//validity := time.Duration(viper.GetInt("ACCESS_TOKEN_VALIDITY")) * time.Minute
-	//token, err := jwt2.Encode(&jwt.MapClaims{
-	//	"name":  user.Name,
-	//	"email": user.Email,
-	//	"id":    user.Id,
-	//}, validity)
 
 	userData, err := getUserData(*user)
 

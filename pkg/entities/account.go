@@ -10,6 +10,8 @@ type Account struct {
 	AccountId    uint `json:"account_id" gorm:"index"`
 	EnterpriseId uint `json:"enterprise_id" gorm:"index"`
 
+	// TODO: account is unique in enterprise by phone / accountId
+
 	ModelTimeStamps
 }
 
