@@ -11,7 +11,7 @@ type User struct {
 	EmailVerifiedAt *time.Time `gorm:"type:timestamp" json:"-"`
 	Password        string     `json:"-"`
 
-	EnterpriseId uint `json:"enterprise_id" gorm:"uniqueIndex"`
+	EnterpriseId uint `json:"enterprise_id" gorm:"index"`
 
 	ModelTimeStamps
 }

@@ -5,6 +5,7 @@ import (
 	"enterprise.sidooh/api/middleware/jwt"
 	"enterprise.sidooh/api/routes"
 	"enterprise.sidooh/pkg/client"
+	"enterprise.sidooh/pkg/services/account"
 	"enterprise.sidooh/pkg/services/auth"
 	"enterprise.sidooh/pkg/services/enterprise"
 	"enterprise.sidooh/pkg/services/user"
@@ -77,6 +78,9 @@ func setHandlers(app *fiber.App) {
 	enterpriseRep := enterprise.NewRepo()
 	enterpriseSrv := enterprise.NewService(enterpriseRep)
 
+	accountRep := account.NewRepo()
+	accountSrv := account.NewService(accountRep)
+
 	routes.AuthRouter(v1, authSrv)
 
 	app.Use(jwt.New(jwt.Config{
@@ -86,6 +90,8 @@ func setHandlers(app *fiber.App) {
 
 	routes.EnterpriseRouter(v1, enterpriseSrv)
 	routes.UserRouter(v1, userSrv)
+	routes.AccountRouter(v1, accountSrv)
+
 }
 
 func Server() *fiber.App {

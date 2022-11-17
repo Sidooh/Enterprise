@@ -4,7 +4,6 @@ import (
 	"enterprise.sidooh/pkg/services/enterprise"
 	"enterprise.sidooh/utils"
 	"errors"
-	"fmt"
 	"github.com/gofiber/fiber/v2"
 	"net/http"
 )
@@ -28,9 +27,6 @@ func GetEnterprise(service enterprise.Service) fiber.Handler {
 
 func GetEnterprises(service enterprise.Service) fiber.Handler {
 	return func(ctx *fiber.Ctx) error {
-		claimData := ctx.Locals("jwtClaims")
-		fmt.Println(claimData)
-
 		fetched, err := service.FetchEnterprises()
 		if err != nil {
 			return utils.HandleErrorResponse(ctx, err)

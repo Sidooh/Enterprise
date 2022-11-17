@@ -64,6 +64,10 @@ func SimpleValidationErrorResponse(error error) JsonResponse {
 	return ErrorResponse("the request is invalid", error.Error())
 }
 
+func HandleUnauthorized(ctx *fiber.Ctx) error {
+	return ctx.Status(http.StatusUnauthorized).JSON(UnauthorizedErrorResponse())
+}
+
 func HandleErrorResponse(ctx *fiber.Ctx, err error) error {
 	log.Error(err)
 
@@ -71,7 +75,7 @@ func HandleErrorResponse(ctx *fiber.Ctx, err error) error {
 		return ctx.Status(http.StatusNotFound).JSON(NotFoundErrorResponse())
 	}
 
-	if err.Error() == "invalid credentials" {
+	if errors.Is(err, pkg.ErrUnauthorized) {
 		return ctx.Status(http.StatusUnauthorized).JSON(UnauthorizedErrorResponse())
 	}
 

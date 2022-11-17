@@ -2,14 +2,18 @@ package handlers
 
 import (
 	"enterprise.sidooh/api/middleware"
+	"enterprise.sidooh/api/middleware/jwt"
 	"enterprise.sidooh/api/presenter"
 	"enterprise.sidooh/pkg/services/auth"
 	"enterprise.sidooh/utils"
+	"fmt"
 	"github.com/gofiber/fiber/v2"
-	"github.com/golang-jwt/jwt/v4"
+	jwt2 "github.com/golang-jwt/jwt/v4"
 	"github.com/hesahesa/pwdbro"
+	"github.com/spf13/viper"
 	"net/http"
 	"strings"
+	"time"
 )
 
 type LoginRequest struct {
@@ -34,7 +38,8 @@ type LoginResponse struct {
 
 func GetAuthUser(service auth.Service) fiber.Handler {
 	return func(ctx *fiber.Ctx) error {
-		claims := ctx.Locals("jwtClaims").(jwt.MapClaims)
+		claims := ctx.Locals("jwtClaims").(jwt2.MapClaims)
+		fmt.Println(ctx.Locals("user"))
 
 		user, err := service.User(int(claims["id"].(float64)))
 		if err != nil {
@@ -105,6 +110,15 @@ func Login(service auth.Service) fiber.Handler {
 		if err != nil {
 			return utils.HandleErrorResponse(ctx, err)
 		}
+
+		validity := time.Duration(viper.GetInt("ACCESS_TOKEN_VALIDITY")) * time.Minute
+		token, err := jwt.Encode(&jwt2.MapClaims{
+			"name":  authData.User.Name,
+			"email": authData.User.Email,
+			"id":    authData.User.Id,
+		}, validity)
+
+		authData.Token = token
 
 		return utils.HandleSuccessResponse(ctx, authData)
 	}

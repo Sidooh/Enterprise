@@ -1,10 +1,14 @@
 package jwt
 
 import (
+	"enterprise.sidooh/pkg/datastore"
+	"enterprise.sidooh/pkg/services/auth"
 	"errors"
 	"fmt"
+	"github.com/Permify/permify-gorm/options"
 	"github.com/gofiber/fiber/v2"
 	"github.com/golang-jwt/jwt/v4"
+	log "github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
 	"time"
 )
@@ -179,9 +183,39 @@ func New(config Config) fiber.Handler {
 
 		if err == nil {
 			c.Locals("jwtClaims", *claims)
-			return c.Next()
+			err := setUserInContext(c, int((*claims)["id"].(float64)))
+			if err == nil {
+				return c.Next()
+			}
 		}
 
 		return cfg.Unauthorized(c)
 	}
+}
+
+func setUserInContext(c *fiber.Ctx, id int) error {
+	authRep := auth.NewRepo()
+
+	user, err := authRep.GetUserByIdWithEnterprise(id)
+	if err != nil {
+		log.Error(err)
+		return err
+	}
+
+	roles, totalCount, err := datastore.Permify.GetRolesOfUser(user.Id, options.RoleOption{
+		WithPermissions: true, // preload role's permissions
+	})
+	if err != nil {
+		log.Error(err)
+		return err
+	}
+	if totalCount == 0 {
+		log.Error("no roles set for " + user.Email)
+		return errors.New("unauthorized")
+	}
+
+	c.Locals("user", user)
+	c.Locals("roles", roles)
+
+	return nil
 }

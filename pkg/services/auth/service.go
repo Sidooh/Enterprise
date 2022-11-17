@@ -3,7 +3,6 @@ package auth
 import (
 	"bytes"
 	"encoding/json"
-	jwt2 "enterprise.sidooh/api/middleware/jwt"
 	"enterprise.sidooh/api/presenter"
 	"enterprise.sidooh/pkg"
 	"enterprise.sidooh/pkg/client"
@@ -12,14 +11,10 @@ import (
 	"enterprise.sidooh/pkg/services/enterprise"
 	"enterprise.sidooh/pkg/services/user"
 	"enterprise.sidooh/utils"
-	"errors"
 	"github.com/Permify/permify-gorm/options"
-	"github.com/golang-jwt/jwt/v4"
 	log "github.com/sirupsen/logrus"
-	"github.com/spf13/viper"
 	"net/http"
 	"strconv"
-	"time"
 )
 
 type Service interface {
@@ -34,16 +29,6 @@ type service struct {
 	authRepository       Repository
 	enterpriseRepository enterprise.Repository
 	userRepository       user.Repository
-}
-
-func (s *service) User(id int) (*presenter.UserWithRelations, error) {
-	user, err := s.authRepository.GetUserByIdWithEnterprise(id)
-	if err != nil {
-		log.Error(err)
-		return nil, errors.New("unauthorized")
-	}
-
-	return getUserData(*user)
 }
 
 type Account struct {
@@ -69,6 +54,16 @@ type FloatAccountApiResponse struct {
 	client.ApiResponse
 
 	Data FloatAccount `json:"data"`
+}
+
+func (s *service) User(id int) (*presenter.UserWithRelations, error) {
+	user, err := s.authRepository.GetUserByIdWithEnterprise(id)
+	if err != nil {
+		log.Error(err)
+		return nil, pkg.ErrUnauthorized
+	}
+
+	return getUserData(*user)
 }
 
 func (s *service) Register(data presenter.Registration) (*presenter.EnterpriseWithUser, error) {
@@ -172,25 +167,25 @@ func (s *service) Login(data presenter.Login) (*presenter.LoginResponse, error) 
 	user, err := s.authRepository.GetUserByEmailWithEnterprise(data.Email)
 	if err != nil {
 		log.Error(err)
-		return nil, errors.New("invalid credentials")
+		return nil, pkg.ErrUnauthorized
 	}
 
 	res := utils.VerifyPassword(user.Password, data.Password)
 
 	if !res {
-		return nil, errors.New("invalid credentials")
+		return nil, pkg.ErrUnauthorized
 	}
 
-	validity := time.Duration(viper.GetInt("ACCESS_TOKEN_VALIDITY")) * time.Minute
-	token, err := jwt2.Encode(&jwt.MapClaims{
-		"name":  user.Name,
-		"email": user.Email,
-		"id":    user.Id,
-	}, validity)
+	//validity := time.Duration(viper.GetInt("ACCESS_TOKEN_VALIDITY")) * time.Minute
+	//token, err := jwt2.Encode(&jwt.MapClaims{
+	//	"name":  user.Name,
+	//	"email": user.Email,
+	//	"id":    user.Id,
+	//}, validity)
 
 	userData, err := getUserData(*user)
 
-	response := &presenter.LoginResponse{Token: token, User: userData}
+	response := &presenter.LoginResponse{User: userData}
 
 	return response, err
 }
@@ -203,7 +198,7 @@ func getUserData(user entities.UserWithEnterprise) (*presenter.UserWithRelations
 		return nil, err
 	}
 	if totalCount == 0 {
-		return nil, errors.New("invalid credentials")
+		return nil, pkg.ErrUnauthorized
 	}
 
 	userData := &presenter.UserWithRelations{
