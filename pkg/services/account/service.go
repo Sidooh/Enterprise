@@ -65,7 +65,6 @@ func (s *service) CreateAccount(account *entities.Account) (*presenter.Account, 
 		Id:    model.Id,
 		Phone: model.Phone,
 		Name:  model.Name,
-		Email: model.Email,
 	}, err
 }
 

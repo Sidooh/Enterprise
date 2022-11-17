@@ -8,6 +8,7 @@ import (
 	"enterprise.sidooh/pkg/services/account"
 	"enterprise.sidooh/pkg/services/auth"
 	"enterprise.sidooh/pkg/services/enterprise"
+	"enterprise.sidooh/pkg/services/team"
 	"enterprise.sidooh/pkg/services/user"
 	"enterprise.sidooh/utils"
 	"github.com/go-playground/validator"
@@ -81,6 +82,9 @@ func setHandlers(app *fiber.App) {
 	accountRep := account.NewRepo()
 	accountSrv := account.NewService(accountRep)
 
+	teamRep := team.NewRepo()
+	teamSrv := team.NewService(teamRep)
+
 	routes.AuthRouter(v1, authSrv)
 
 	app.Use(jwt.New(jwt.Config{
@@ -91,6 +95,7 @@ func setHandlers(app *fiber.App) {
 	routes.EnterpriseRouter(v1, enterpriseSrv)
 	routes.UserRouter(v1, userSrv)
 	routes.AccountRouter(v1, accountSrv)
+	routes.TeamRouter(v1, teamSrv)
 
 }
 

@@ -62,7 +62,13 @@ func Init() {
 	}
 
 	if viper.GetBool("MIGRATE_DB") {
-		err := gormDb.AutoMigrate(&entities.Enterprise{}, &entities.User{}, &entities.Account{})
+		err := gormDb.AutoMigrate(
+			&entities.Enterprise{},
+			&entities.User{},
+			&entities.Account{},
+			&entities.Team{},
+			//&entities.TeamAccount{},
+		)
 		if err != nil {
 			logrus.Error(err)
 			panic("failed to auto-migrate")
