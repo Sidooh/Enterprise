@@ -3,37 +3,36 @@ package account
 import (
 	"bytes"
 	"encoding/json"
-	"enterprise.sidooh/api/presenter"
 	"enterprise.sidooh/pkg"
-	"enterprise.sidooh/pkg/client"
+	"enterprise.sidooh/pkg/clients"
 	"enterprise.sidooh/pkg/entities"
 	"enterprise.sidooh/pkg/services"
 	"net/http"
 )
 
 type Service interface {
-	FetchAccounts() (*[]presenter.Account, error)
-	GetAccount(id int) (*presenter.Account, error)
-	CreateAccount(account *entities.Account) (*presenter.Account, error)
+	FetchAccounts() (*[]entities.Account, error)
+	GetAccount(id int) (*entities.Account, error)
+	CreateAccount(account *entities.Account) (*entities.Account, error)
 
-	FetchAccountsForEnterprise(enterpriseId int) (*[]presenter.Account, error)
-	GetAccountForEnterprise(enterpriseId int, id int) (*presenter.Account, error)
+	FetchAccountsForEnterprise(enterpriseId int) (*[]entities.Account, error)
+	GetAccountForEnterprise(enterpriseId int, id int) (*entities.Account, error)
 }
 
 type service struct {
-	accountsApi       *client.ApiClient
+	accountsApi       *clients.ApiClient
 	accountRepository Repository
 }
 
-func (s *service) FetchAccounts() (*[]presenter.Account, error) {
+func (s *service) FetchAccounts() (*[]entities.Account, error) {
 	return s.accountRepository.ReadAccounts()
 }
 
-func (s *service) GetAccount(id int) (*presenter.Account, error) {
+func (s *service) GetAccount(id int) (*entities.Account, error) {
 	return s.accountRepository.ReadAccount(id)
 }
 
-func (s *service) CreateAccount(account *entities.Account) (*presenter.Account, error) {
+func (s *service) CreateAccount(account *entities.Account) (*entities.Account, error) {
 	accountExists, err := s.accountRepository.ReadEnterpriseAccountByPhone(int(account.EnterpriseId), account.Phone)
 	if accountExists != nil {
 		return nil, pkg.ErrInvalidAccount
@@ -59,24 +58,18 @@ func (s *service) CreateAccount(account *entities.Account) (*presenter.Account, 
 	account.AccountId = uint(response.Id)
 	account.Phone = response.Phone
 
-	model, err := s.accountRepository.CreateAccount(account)
-
-	return &presenter.Account{
-		Id:    model.Id,
-		Phone: model.Phone,
-		Name:  model.Name,
-	}, err
+	return s.accountRepository.CreateAccount(account)
 }
 
-func (s *service) FetchAccountsForEnterprise(enterpriseId int) (*[]presenter.Account, error) {
+func (s *service) FetchAccountsForEnterprise(enterpriseId int) (*[]entities.Account, error) {
 	return s.accountRepository.ReadEnterpriseAccounts(enterpriseId)
 }
 
-func (s *service) GetAccountForEnterprise(enterpriseId int, id int) (*presenter.Account, error) {
+func (s *service) GetAccountForEnterprise(enterpriseId int, id int) (*entities.Account, error) {
 	return s.accountRepository.ReadEnterpriseAccount(enterpriseId, id)
 }
 
 func NewService(account Repository) Service {
-	accountsApi := client.InitAccountClient()
+	accountsApi := clients.InitAccountClient()
 	return &service{accountRepository: account, accountsApi: accountsApi}
 }

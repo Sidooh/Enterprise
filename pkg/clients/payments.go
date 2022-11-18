@@ -1,4 +1,4 @@
-package client
+package clients
 
 import (
 	"github.com/spf13/viper"
@@ -6,5 +6,5 @@ import (
 
 func InitPaymentClient() *ApiClient {
 	apiUrl := viper.GetString("SIDOOH_PAYMENTS_API_URL")
-	return Init(apiUrl)
+	return New(apiUrl)
 }

@@ -4,7 +4,7 @@ import (
 	"enterprise.sidooh/api/middleware"
 	"enterprise.sidooh/api/middleware/jwt"
 	"enterprise.sidooh/api/routes"
-	"enterprise.sidooh/pkg/client"
+	"enterprise.sidooh/pkg/clients"
 	"enterprise.sidooh/pkg/services/account"
 	"enterprise.sidooh/pkg/services/auth"
 	"enterprise.sidooh/pkg/services/enterprise"
@@ -20,7 +20,6 @@ import (
 	"github.com/gofiber/fiber/v2/middleware/recover"
 	"github.com/gofiber/helmet/v2"
 	"github.com/spf13/viper"
-	"net/http"
 	"time"
 )
 
@@ -57,12 +56,6 @@ func setHealthCheckRoutes(app *fiber.App) {
 	app.Get("/200", func(ctx *fiber.Ctx) error {
 		return ctx.JSON("200")
 	})
-
-	app.Get("/500", func(ctx *fiber.Ctx) error {
-		ctx.Status(http.StatusInternalServerError)
-
-		return ctx.JSON("500")
-	})
 }
 
 func setHandlers(app *fiber.App) {
@@ -70,7 +63,7 @@ func setHandlers(app *fiber.App) {
 	v1 := api.Group("/v1")
 
 	authRep := auth.NewRepo()
-	accountApi := client.InitAccountClient()
+	accountApi := clients.InitAccountClient()
 	authSrv := auth.NewService(authRep, accountApi)
 
 	userRep := user.NewRepo()

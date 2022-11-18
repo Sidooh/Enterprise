@@ -8,6 +8,8 @@ import (
 	"time"
 )
 
+var GlobalCache Cache[string, interface{}]
+
 type Cache[K comparable, V any] interface {
 	Get(key K) *V
 	Set(key K, value V, time time.Duration) *V
@@ -52,7 +54,11 @@ func (c *cache[K, V]) Unmarshal(key K, to interface{}) error {
 	return err
 }
 
-func Init[K comparable, V any]() Cache[K, V] {
+func Init() {
+	GlobalCache = New[string, interface{}]()
+}
+
+func New[K comparable, V any]() Cache[K, V] {
 	instance := ttlcache.New[K, V](
 		ttlcache.WithTTL[K, V](15*time.Minute),
 		ttlcache.WithDisableTouchOnHit[K, V](),

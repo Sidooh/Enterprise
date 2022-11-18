@@ -19,14 +19,9 @@ func TestRouting(t *testing.T) {
 			expectedCode: 200,
 		},
 		{
-			description:  "get 404, when route does not exist",
-			route:        "/404",
-			expectedCode: 404,
-		},
-		{
-			description:  "get 500",
-			route:        "/500",
-			expectedCode: 500,
+			description:  "get 401, when unauthorized",
+			route:        "/401",
+			expectedCode: 401,
 		},
 	}
 

@@ -2,6 +2,8 @@ package main
 
 import (
 	"enterprise.sidooh/api"
+	"enterprise.sidooh/pkg/cache"
+	"enterprise.sidooh/pkg/clients"
 	"enterprise.sidooh/pkg/datastore"
 	"enterprise.sidooh/pkg/logger"
 	"enterprise.sidooh/utils"
@@ -22,8 +24,9 @@ func main() {
 	}
 
 	logger.Init()
-
 	datastore.Init()
+	cache.Init()
+	clients.Init()
 
 	app := api.Server()
 

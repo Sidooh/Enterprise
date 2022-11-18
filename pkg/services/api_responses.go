@@ -1,6 +1,6 @@
 package services
 
-import "enterprise.sidooh/pkg/client"
+import "enterprise.sidooh/pkg/clients"
 
 type Account struct {
 	Id     int    `json:"id"`
@@ -16,13 +16,13 @@ type FloatAccount struct {
 }
 
 type AccountApiResponse struct {
-	client.ApiResponse
+	clients.ApiResponse
 
 	Data Account `json:"data"`
 }
 
 type FloatAccountApiResponse struct {
-	client.ApiResponse
+	clients.ApiResponse
 
 	Data FloatAccount `json:"data"`
 }

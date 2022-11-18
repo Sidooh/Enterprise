@@ -1,4 +1,4 @@
-package client
+package clients
 
 import (
 	"encoding/json"
@@ -15,7 +15,9 @@ import (
 var client *ApiClient
 
 func TestMain(m *testing.M) {
-	client = Init("")
+	Init()
+
+	client = New("")
 	os.Exit(m.Run())
 }
 
@@ -75,10 +77,6 @@ func initTestClient(fn RoundTripFunc) {
 	}
 }
 
-func setEnv(key string, value string) {
-	viper.Set(key, value)
-}
-
 func authSuccessRequest(t *testing.T) RoundTripFunc {
 	return func(req *http.Request) *http.Response {
 		// Test request parameters
@@ -109,6 +107,7 @@ func authFailedRequest(t *testing.T) RoundTripFunc {
 
 func TestApiClient_Authenticate(t *testing.T) {
 	client.baseUrl = "http://localhost:8000"
+	viper.Set("SIDOOH_ACCOUNTS_API_URL", client.baseUrl)
 
 	initTestClient(authSuccessRequest(t))
 

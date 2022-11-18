@@ -1,4 +1,4 @@
-package client
+package clients
 
 import (
 	"bytes"
@@ -32,13 +32,21 @@ type ApiResponse struct {
 	Errors  []interface{} `json:"errors"`
 }
 
-func Init(baseUrl string) *ApiClient {
-	logger.ClientLog.Println("Init client: ", baseUrl)
+var clientCache cache.Cache[string, string]
+
+func Init() {
+	logger.ClientLog.Println("Init client")
+
+	clientCache = cache.New[string, string]()
+}
+
+func New(baseUrl string) *ApiClient {
+	logger.ClientLog.Println("New client: ", baseUrl)
 
 	return &ApiClient{
 		client:  &http.Client{Timeout: 10 * time.Second},
 		baseUrl: baseUrl,
-		cache:   cache.Init[string, string](),
+		cache:   clientCache,
 	}
 }
 

@@ -5,7 +5,7 @@ import (
 	"encoding/json"
 	"enterprise.sidooh/api/presenter"
 	"enterprise.sidooh/pkg"
-	"enterprise.sidooh/pkg/client"
+	"enterprise.sidooh/pkg/clients"
 	"enterprise.sidooh/pkg/datastore"
 	"enterprise.sidooh/pkg/entities"
 	"enterprise.sidooh/pkg/services"
@@ -25,8 +25,8 @@ type Service interface {
 }
 
 type service struct {
-	accountsApi          *client.ApiClient
-	paymentsApi          *client.ApiClient
+	accountsApi          *clients.ApiClient
+	paymentsApi          *clients.ApiClient
 	authRepository       Repository
 	enterpriseRepository enterprise.Repository
 	userRepository       user.Repository
@@ -189,10 +189,10 @@ func getUserData(user entities.UserWithEnterprise) (*presenter.UserWithRelations
 	return userData, nil
 }
 
-func NewService(auth Repository, apiClient *client.ApiClient) Service {
+func NewService(auth Repository, apiClient *clients.ApiClient) Service {
 	enterpriseRepository := enterprise.NewRepo()
 	userRepository := user.NewRepo()
-	paymentsApi := client.InitPaymentClient()
+	paymentsApi := clients.InitPaymentClient()
 
 	return &service{
 		authRepository:       auth,

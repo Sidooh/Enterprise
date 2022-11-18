@@ -1,4 +1,4 @@
-package client
+package clients
 
 import (
 	"github.com/spf13/viper"
@@ -6,5 +6,5 @@ import (
 
 func InitAccountClient() *ApiClient {
 	accountsApiUrl := viper.GetString("SIDOOH_ACCOUNTS_API_URL")
-	return Init(accountsApiUrl)
+	return New(accountsApiUrl)
 }

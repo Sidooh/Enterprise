@@ -11,7 +11,7 @@ var instance Cache[string, string]
 
 func TestMain(m *testing.M) {
 
-	instance = Init[string, string]()
+	instance = New[string, string]()
 
 	os.Exit(m.Run())
 }

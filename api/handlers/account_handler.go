@@ -2,7 +2,6 @@ package handlers
 
 import (
 	"enterprise.sidooh/api/middleware"
-	"enterprise.sidooh/api/presenter"
 	"enterprise.sidooh/pkg/entities"
 	"enterprise.sidooh/pkg/services/account"
 	"enterprise.sidooh/utils"
@@ -24,7 +23,7 @@ func GetAccount(service account.Service) fiber.Handler {
 			return ctx.JSON(utils.ValidationErrorResponse(errors.New("invalid id parameter")))
 		}
 
-		fetched := new(presenter.Account)
+		fetched := new(entities.Account)
 
 		if utils.IsSuperAdmin(ctx) {
 			fetched, err = service.GetAccount(id)
@@ -45,7 +44,7 @@ func GetAccount(service account.Service) fiber.Handler {
 
 func GetAccounts(service account.Service) fiber.Handler {
 	return func(ctx *fiber.Ctx) error {
-		fetched := new([]presenter.Account)
+		fetched := new([]entities.Account)
 		err := *new(error)
 
 		if utils.IsSuperAdmin(ctx) {
@@ -72,7 +71,7 @@ func CreateAccount(service account.Service) fiber.Handler {
 			return ctx.Status(http.StatusUnprocessableEntity).JSON(err)
 		}
 
-		fetched := new(presenter.Account)
+		fetched := new(entities.Account)
 		err := *new(error)
 
 		// TODO: Use permissions for this part - determine who can add accounts
