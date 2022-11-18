@@ -7,7 +7,7 @@ type User struct {
 
 	Phone           string     `json:"phone" gorm:"unique"`
 	Name            string     `json:"name"`
-	Email           string     `json:"email" gorm:"uniqueIndex"`
+	Email           string     `json:"email" gorm:"size:191;uniqueIndex"`
 	EmailVerifiedAt *time.Time `gorm:"type:timestamp" json:"-"`
 	Password        string     `json:"-"`
 
