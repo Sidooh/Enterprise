@@ -22,7 +22,7 @@ type repository struct {
 
 func (r *repository) CreateTeam(team *entities.Team) (t *entities.Team, err error) {
 	err = datastore.DB.Create(&team).Error
-	return
+	return team, err
 }
 
 func (r *repository) ReadTeams() (teams *[]entities.Team, err error) {

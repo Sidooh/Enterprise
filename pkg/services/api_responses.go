@@ -18,7 +18,7 @@ type FloatAccount struct {
 type AccountApiResponse struct {
 	clients.ApiResponse
 
-	Data Account `json:"data"`
+	Data *Account `json:"data"`
 }
 
 type FloatAccountApiResponse struct {

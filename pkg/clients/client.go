@@ -26,10 +26,10 @@ type AuthResponse struct {
 }
 
 type ApiResponse struct {
-	Result  int           `json:"result"`
-	Message string        `json:"message"`
-	Data    interface{}   `json:"data"`
-	Errors  []interface{} `json:"errors"`
+	Result  int         `json:"result"`
+	Message string      `json:"message"`
+	Data    interface{} `json:"data"`
+	Errors  interface{} `json:"errors"`
 }
 
 var clientCache cache.Cache[string, string]

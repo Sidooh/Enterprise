@@ -7,6 +7,7 @@ import (
 	"enterprise.sidooh/pkg/clients"
 	"enterprise.sidooh/pkg/entities"
 	"enterprise.sidooh/pkg/services"
+	"errors"
 	"net/http"
 )
 
@@ -33,8 +34,8 @@ func (s *service) GetAccount(id int) (*entities.Account, error) {
 }
 
 func (s *service) CreateAccount(account *entities.Account) (*entities.Account, error) {
-	accountExists, err := s.accountRepository.ReadEnterpriseAccountByPhone(int(account.EnterpriseId), account.Phone)
-	if accountExists != nil {
+	_, err := s.accountRepository.ReadEnterpriseAccountByPhone(int(account.EnterpriseId), account.Phone)
+	if err == nil {
 		return nil, pkg.ErrInvalidAccount
 	}
 
@@ -45,12 +46,15 @@ func (s *service) CreateAccount(account *entities.Account) (*entities.Account, e
 	dataBytes := bytes.NewBuffer(jsonData)
 
 	err = s.accountsApi.NewRequest(http.MethodPost, "/accounts", dataBytes).Send(apiResponse)
-	if err != nil {
-		if err.Error() == "phone is already taken" {
-			err = s.accountsApi.NewRequest(http.MethodGet, "/accounts/phone/"+account.Phone, nil).Send(apiResponse)
-		} else {
+	if err != nil || apiResponse.Result == 0 {
+		err = s.accountsApi.NewRequest(http.MethodGet, "/accounts/phone/"+account.Phone, nil).Send(apiResponse)
+		if err != nil {
 			return nil, err
 		}
+	}
+
+	if apiResponse.Data == nil {
+		return nil, errors.New("something went wrong")
 	}
 
 	response := apiResponse.Data
