@@ -28,7 +28,7 @@ type RegisterRequest struct {
 	Phone     string `json:"phone" validate:"required,numeric,min=9"`
 	Email     string `json:"email" validate:"required,email"`
 	AdminName string `json:"admin_name" validate:"required"`
-	Password  string `json:"password" validate:"required,min=8,max=64"`
+	Password  string `json:"password" validate:"required,min=10,max=64"`
 }
 
 type LoginResponse struct {
