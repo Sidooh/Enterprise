@@ -8,7 +8,6 @@ import (
 	"enterprise.sidooh/pkg/clients"
 	"enterprise.sidooh/pkg/datastore"
 	"enterprise.sidooh/pkg/entities"
-	"enterprise.sidooh/pkg/services"
 	"enterprise.sidooh/pkg/services/enterprise"
 	"enterprise.sidooh/pkg/services/user"
 	"enterprise.sidooh/utils"
@@ -92,7 +91,7 @@ func (s *service) Register(data presenter.Registration) (*presenter.EnterpriseWi
 	// TODO: Refactor to payments client
 	updatedEnterprise := enterprise
 
-	var response = new(services.FloatAccountApiResponse)
+	var response = new(clients.FloatAccountApiResponse)
 
 	jsonData, err := json.Marshal(map[string]string{
 		"initiator":  "ENTERPRISE",

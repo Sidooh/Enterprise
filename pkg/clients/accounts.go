@@ -3,7 +3,6 @@ package clients
 import (
 	"bytes"
 	"encoding/json"
-	"enterprise.sidooh/pkg/services"
 	"github.com/spf13/viper"
 	"net/http"
 )
@@ -13,8 +12,8 @@ func InitAccountClient() *ApiClient {
 	return New(accountsApiUrl)
 }
 
-func (api *ApiClient) GetOrCreateAccount(phone string) (*services.Account, error) {
-	var apiResponse = new(services.AccountApiResponse)
+func (api *ApiClient) GetOrCreateAccount(phone string) (*Account, error) {
+	var apiResponse = new(AccountApiResponse)
 
 	jsonData, err := json.Marshal(map[string]string{"phone": phone})
 	dataBytes := bytes.NewBuffer(jsonData)
