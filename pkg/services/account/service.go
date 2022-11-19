@@ -1,14 +1,9 @@
 package account
 
 import (
-	"bytes"
-	"encoding/json"
 	"enterprise.sidooh/pkg"
 	"enterprise.sidooh/pkg/clients"
 	"enterprise.sidooh/pkg/entities"
-	"enterprise.sidooh/pkg/services"
-	"errors"
-	"net/http"
 )
 
 type Service interface {
@@ -40,24 +35,10 @@ func (s *service) CreateAccount(account *entities.Account) (*entities.Account, e
 	}
 
 	// TODO: Refactor these common api calls
-	var apiResponse = new(services.AccountApiResponse)
-
-	jsonData, err := json.Marshal(map[string]string{"phone": account.Phone})
-	dataBytes := bytes.NewBuffer(jsonData)
-
-	err = s.accountsApi.NewRequest(http.MethodPost, "/accounts", dataBytes).Send(apiResponse)
-	if err != nil || apiResponse.Result == 0 {
-		err = s.accountsApi.NewRequest(http.MethodGet, "/accounts/phone/"+account.Phone, nil).Send(apiResponse)
-		if err != nil {
-			return nil, err
-		}
+	response, err := s.accountsApi.GetOrCreateAccount(account.Phone)
+	if err != nil {
+		return nil, pkg.ErrServerError
 	}
-
-	if apiResponse.Data == nil {
-		return nil, errors.New("something went wrong")
-	}
-
-	response := apiResponse.Data
 
 	account.AccountId = uint(response.Id)
 	account.Phone = response.Phone

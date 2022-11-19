@@ -10,4 +10,6 @@ var (
 	ErrInvalidAccount = errors.New("account details are invalid")
 
 	ErrUnauthorized = errors.New("unauthorized")
+
+	ErrServerError = errors.New("something went wrong")
 )

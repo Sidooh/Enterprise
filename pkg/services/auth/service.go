@@ -56,21 +56,10 @@ func (s *service) Register(data presenter.Registration) (*presenter.EnterpriseWi
 	}
 
 	// 1. Create/get Sidooh account
-	var apiResponse = new(services.AccountApiResponse)
-
-	jsonData, err := json.Marshal(map[string]string{"phone": data.Phone})
-	dataBytes := bytes.NewBuffer(jsonData)
-
-	err = s.accountsApi.NewRequest(http.MethodPost, "/accounts", dataBytes).Send(apiResponse)
+	account, err := s.accountsApi.GetOrCreateAccount(data.Phone)
 	if err != nil {
-		if err.Error() == "phone is already taken" {
-			err = s.accountsApi.NewRequest(http.MethodGet, "/accounts/phone/"+data.Phone, nil).Send(apiResponse)
-		} else {
-			return nil, err
-		}
+		return nil, pkg.ErrServerError
 	}
-
-	account := apiResponse.Data
 
 	// 2. Create Enterprise
 	enterprise, err := s.enterpriseRepository.CreateEnterprise(&entities.Enterprise{
@@ -100,16 +89,17 @@ func (s *service) Register(data presenter.Registration) (*presenter.EnterpriseWi
 	_ = datastore.Permify.AddRolesToUser(user.Id, "ADMIN")
 
 	// 4. Create Float account
+	// TODO: Refactor to payments client
 	updatedEnterprise := enterprise
 
 	var response = new(services.FloatAccountApiResponse)
 
-	jsonData, err = json.Marshal(map[string]string{
+	jsonData, err := json.Marshal(map[string]string{
 		"initiator":  "ENTERPRISE",
 		"reference":  strconv.Itoa(int(enterprise.Id)),
 		"account_id": strconv.Itoa(account.Id),
 	})
-	dataBytes = bytes.NewBuffer(jsonData)
+	dataBytes := bytes.NewBuffer(jsonData)
 
 	err = s.paymentsApi.NewRequest(http.MethodPost, "/float-accounts", dataBytes).Send(response)
 	if err == nil {
