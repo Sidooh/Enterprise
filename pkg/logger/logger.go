@@ -10,13 +10,18 @@ var ClientLog = &log.Logger{
 	Out: nil,
 }
 
+var ServerLog = &log.Logger{
+	Out: nil,
+}
+
 func Init() {
 	ClientLog = log.New()
+	ServerLog = log.New()
 
 	env := viper.GetString("APP_ENV")
 
 	if env != "TEST" {
-		file := utils.GetLogFile("client.log")
-		ClientLog.SetOutput(file)
+		ClientLog.SetOutput(utils.GetLogFile("client.log"))
+		ServerLog.SetOutput(utils.GetLogFile("server.log"))
 	}
 }

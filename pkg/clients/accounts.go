@@ -7,9 +7,15 @@ import (
 	"net/http"
 )
 
-func InitAccountClient() *ApiClient {
+var accountClient *ApiClient
+
+func InitAccountClient() {
 	accountsApiUrl := viper.GetString("SIDOOH_ACCOUNTS_API_URL")
-	return New(accountsApiUrl)
+	accountClient = New(accountsApiUrl)
+}
+
+func GetAccountClient() *ApiClient {
+	return accountClient
 }
 
 func (api *ApiClient) GetOrCreateAccount(phone string) (*Account, error) {

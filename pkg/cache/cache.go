@@ -8,9 +8,10 @@ import (
 	"time"
 )
 
-var GlobalCache Cache[string, interface{}]
+var Cache ICache[string, interface{}]
 
-type Cache[K comparable, V any] interface {
+type ICache[K comparable, V any] interface {
+	GetAll() map[K]V
 	Get(key K) *V
 	Set(key K, value V, time time.Duration) *V
 	GetString(key K) string
@@ -19,6 +20,16 @@ type Cache[K comparable, V any] interface {
 
 type cache[K comparable, V any] struct {
 	cache *ttlcache.Cache[K, V]
+}
+
+func (c *cache[K, V]) GetAll() map[K]V {
+	var items = map[K]V{}
+
+	for k, i := range c.cache.Items() {
+		items[k] = i.Value()
+	}
+
+	return items
 }
 
 func (c *cache[K, V]) GetString(key K) string {
@@ -55,10 +66,10 @@ func (c *cache[K, V]) Unmarshal(key K, to interface{}) error {
 }
 
 func Init() {
-	GlobalCache = New[string, interface{}]()
+	Cache = New[string, interface{}]()
 }
 
-func New[K comparable, V any]() Cache[K, V] {
+func New[K comparable, V any]() ICache[K, V] {
 	instance := ttlcache.New[K, V](
 		ttlcache.WithTTL[K, V](15*time.Minute),
 		ttlcache.WithDisableTouchOnHit[K, V](),

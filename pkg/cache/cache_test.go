@@ -7,7 +7,7 @@ import (
 	"time"
 )
 
-var instance Cache[string, string]
+var instance ICache[string, string]
 
 func TestMain(m *testing.M) {
 

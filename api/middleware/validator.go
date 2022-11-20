@@ -24,7 +24,7 @@ func validate(i interface{}) error {
 			}
 
 			validationErrors = append(validationErrors, utils.ValidationError{
-				Value:   err.Value().(string),
+				Value:   err.Value(),
 				Field:   err.Field(),
 				Message: msg,
 				Param:   tag,

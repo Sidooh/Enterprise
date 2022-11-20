@@ -1,38 +1,40 @@
 package auth
 
 import (
-	"bytes"
-	"encoding/json"
 	"enterprise.sidooh/api/presenter"
 	"enterprise.sidooh/pkg"
+	"enterprise.sidooh/pkg/cache"
 	"enterprise.sidooh/pkg/clients"
 	"enterprise.sidooh/pkg/datastore"
 	"enterprise.sidooh/pkg/entities"
 	"enterprise.sidooh/pkg/services/enterprise"
 	"enterprise.sidooh/pkg/services/user"
 	"enterprise.sidooh/utils"
+	"fmt"
 	"github.com/Permify/permify-gorm/options"
 	log "github.com/sirupsen/logrus"
-	"net/http"
-	"strconv"
+	"time"
 )
 
 type Service interface {
 	User(id int) (*presenter.UserWithRelations, error)
 	Register(data presenter.Registration) (*presenter.EnterpriseWithUser, error)
 	Login(data presenter.Login) (*presenter.LoginResponse, error)
+
+	GenerateOTP(id int, channel string) error
+	ValidateOTP(id int, otp int) (*presenter.LoginResponse, error)
 }
 
 type service struct {
 	accountsApi          *clients.ApiClient
+	notifyApi            *clients.ApiClient
 	paymentsApi          *clients.ApiClient
-	authRepository       Repository
 	enterpriseRepository enterprise.Repository
 	userRepository       user.Repository
 }
 
 func (s *service) User(id int) (*presenter.UserWithRelations, error) {
-	user, err := s.authRepository.GetUserByIdWithEnterprise(id)
+	user, err := s.userRepository.ReadUserByIdWithEnterprise(id)
 	if err != nil {
 		log.Error(err)
 		return nil, pkg.ErrUnauthorized
@@ -91,23 +93,13 @@ func (s *service) Register(data presenter.Registration) (*presenter.EnterpriseWi
 	// TODO: Refactor to payments client
 	updatedEnterprise := enterprise
 
-	var response = new(clients.FloatAccountApiResponse)
-
-	jsonData, err := json.Marshal(map[string]string{
-		"initiator":  "ENTERPRISE",
-		"reference":  strconv.Itoa(int(enterprise.Id)),
-		"account_id": strconv.Itoa(account.Id),
-	})
-	dataBytes := bytes.NewBuffer(jsonData)
-
-	err = s.paymentsApi.NewRequest(http.MethodPost, "/float-accounts", dataBytes).Send(response)
-	if err == nil {
-		floatAccount := response.Data
-
-		updatedEnterprise, err = s.enterpriseRepository.UpdateEnterprise(enterprise, "float_account_id", floatAccount.Id)
-		if err != nil {
-			return nil, err
-		}
+	floatAccount, err := s.paymentsApi.CreateFloatAccount(int(enterprise.Id), account.Id)
+	if err != nil {
+		return nil, pkg.ErrServerError
+	}
+	updatedEnterprise, err = s.enterpriseRepository.UpdateEnterprise(enterprise, "float_account_id", floatAccount.Id)
+	if err != nil {
+		return nil, err
 	}
 
 	// return data
@@ -129,7 +121,7 @@ func (s *service) Register(data presenter.Registration) (*presenter.EnterpriseWi
 }
 
 func (s *service) Login(data presenter.Login) (*presenter.LoginResponse, error) {
-	user, err := s.authRepository.GetUserByEmailWithEnterprise(data.Email)
+	user, err := s.userRepository.ReadUserByEmailWithEnterprise(data.Email)
 	if err != nil {
 		log.Error(err)
 		return nil, pkg.ErrUnauthorized
@@ -143,6 +135,47 @@ func (s *service) Login(data presenter.Login) (*presenter.LoginResponse, error) 
 
 	userData, err := getUserData(*user)
 
+	response := &presenter.LoginResponse{User: userData}
+
+	return response, err
+}
+
+func (s *service) GenerateOTP(id int, channel string) error {
+	user, err := s.userRepository.ReadUser(id)
+	if err != nil {
+		log.Error(err)
+		return pkg.ErrUnauthorized
+	}
+
+	otp := utils.RandomInt(100000, 999999)
+
+	// Send OTP to phone number
+	message := fmt.Sprintf("S-%v is your verification code.", otp)
+	switch channel {
+	case utils.MAIL:
+		err = s.notifyApi.SendMail("DEFAULT", user.Email, message)
+	default:
+		err = s.notifyApi.SendSMS("DEFAULT", user.Phone, message)
+	}
+
+	cache.Cache.Set(fmt.Sprintf("otp_%s", user.Phone), otp, 5*time.Minute)
+
+	return err
+}
+
+func (s *service) ValidateOTP(id int, otp int) (*presenter.LoginResponse, error) {
+	user, err := s.userRepository.ReadUserByIdWithEnterprise(id)
+	if err != nil {
+		log.Error(err)
+		return nil, pkg.ErrUnauthorized
+	}
+
+	savedOtp := cache.Cache.Get(fmt.Sprintf("otp_%s", user.Phone))
+	if savedOtp == nil || int((*savedOtp).(int64)) != otp {
+		return nil, pkg.ErrUnauthorized
+	}
+
+	userData, err := getUserData(*user)
 	response := &presenter.LoginResponse{User: userData}
 
 	return response, err
@@ -178,16 +211,15 @@ func getUserData(user entities.UserWithEnterprise) (*presenter.UserWithRelations
 	return userData, nil
 }
 
-func NewService(auth Repository, apiClient *clients.ApiClient) Service {
+func NewService(userRepository user.Repository) Service {
 	enterpriseRepository := enterprise.NewRepo()
-	userRepository := user.NewRepo()
-	paymentsApi := clients.InitPaymentClient()
 
 	return &service{
-		authRepository:       auth,
-		accountsApi:          apiClient,
 		enterpriseRepository: enterpriseRepository,
 		userRepository:       userRepository,
-		paymentsApi:          paymentsApi,
+
+		accountsApi: clients.GetAccountClient(),
+		paymentsApi: clients.GetPaymentClient(),
+		notifyApi:   clients.GetNotifyClient(),
 	}
 }

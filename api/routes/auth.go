@@ -14,6 +14,11 @@ func AuthRouter(app fiber.Router, service auth.Service) {
 		Secret: viper.GetString("JWT_KEY"),
 		Expiry: time.Duration(15) * time.Minute,
 	}), handlers.GetAuthUser(service))
+
 	app.Post("/auth/register", handlers.Register(service))
 	app.Post("/auth/login", handlers.Login(service))
+
+	// V1 OTP handlers
+	app.Post("/auth/otp/generate", handlers.GenerateOtp(service))
+	app.Post("/auth/otp/verify", handlers.VerifyOtp(service))
 }

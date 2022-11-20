@@ -23,10 +23,10 @@ func (j JsonResponse) Error() string {
 }
 
 type ValidationError struct {
-	Field   string `json:"field"`
-	Message string `json:"message"`
-	Param   string `json:"param"`
-	Value   string `json:"value,omitempty"`
+	Field   string      `json:"field"`
+	Message string      `json:"message"`
+	Param   string      `json:"param"`
+	Value   interface{} `json:"value,omitempty"`
 }
 
 func SuccessResponse(data interface{}) JsonResponse {
@@ -80,7 +80,11 @@ func HandleErrorResponse(ctx *fiber.Ctx, err error) error {
 	}
 
 	// TODO: Handle simple one line errors
-	if errors.Is(err, pkg.ErrInvalidEnterprise) || errors.Is(err, pkg.ErrInvalidUser) || errors.Is(err, pkg.ErrInvalidAccount) {
+	if errors.Is(err, pkg.ErrInvalidEnterprise) ||
+		errors.Is(err, pkg.ErrInvalidUser) ||
+		errors.Is(err, pkg.ErrInvalidAccount) ||
+		errors.Is(err, pkg.ErrUnauthorizedMfa) ||
+		errors.Is(err, pkg.ErrInvalidChannel) {
 		return ctx.Status(http.StatusUnauthorized).JSON(SimpleValidationErrorResponse(err))
 	}
 

@@ -55,6 +55,5 @@ func (s *service) GetAccountForEnterprise(enterpriseId int, id int) (*entities.A
 }
 
 func NewService(account Repository) Service {
-	accountsApi := clients.InitAccountClient()
-	return &service{accountRepository: account, accountsApi: accountsApi}
+	return &service{accountRepository: account, accountsApi: clients.GetAccountClient()}
 }

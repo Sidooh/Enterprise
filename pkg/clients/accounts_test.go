@@ -8,8 +8,9 @@ import (
 
 func TestInitAccountClient(t *testing.T) {
 	viper.Set("SIDOOH_ACCOUNTS_API_URL", "test.test")
+	InitAccountClient()
 
-	client := InitAccountClient()
+	client := GetAccountClient()
 
 	assert.NotNil(t, t, client)
 	assert.NotNil(t, t, client.client)

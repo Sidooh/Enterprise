@@ -5,12 +5,15 @@ import (
 	"enterprise.sidooh/api/middleware/jwt"
 	"enterprise.sidooh/api/routes"
 	"enterprise.sidooh/pkg/clients"
+	"enterprise.sidooh/pkg/logger"
 	"enterprise.sidooh/pkg/services/account"
 	"enterprise.sidooh/pkg/services/auth"
 	"enterprise.sidooh/pkg/services/enterprise"
 	"enterprise.sidooh/pkg/services/team"
 	"enterprise.sidooh/pkg/services/user"
 	"enterprise.sidooh/utils"
+	"errors"
+	"fmt"
 	"github.com/go-playground/validator"
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/cors"
@@ -42,7 +45,7 @@ func setMiddleware(app *fiber.App) {
 	app.Use(cors.New())
 	app.Use(limiter.New())
 	app.Use(recover.New())
-	app.Use(fiberLogger.New(fiberLogger.Config{Output: utils.GetLogFile("server.log")}))
+	app.Use(fiberLogger.New(fiberLogger.Config{Output: utils.GetLogFile("stats.log")}))
 
 	app.Use(favicon.New(favicon.Config{Next: func(c *fiber.Ctx) bool {
 		return true
@@ -62,11 +65,15 @@ func setHandlers(app *fiber.App) {
 	api := app.Group("/api")
 	v1 := api.Group("/v1")
 
-	authRep := auth.NewRepo()
-	accountApi := clients.InitAccountClient()
-	authSrv := auth.NewService(authRep, accountApi)
+	// Initialize rest clients
+	clients.InitAccountClient()
+	clients.InitPaymentClient()
+	clients.InitNotifyClient()
 
 	userRep := user.NewRepo()
+
+	authSrv := auth.NewService(userRep)
+
 	userSrv := user.NewService(userRep)
 
 	enterpriseRep := enterprise.NewRepo()
@@ -93,9 +100,35 @@ func setHandlers(app *fiber.App) {
 }
 
 func Server() *fiber.App {
+	// Create a new fiber instance with custom config
 	app := fiber.New(fiber.Config{
 		Prefork: viper.GetBool("PREFORK"),
+
+		// Override default error handler
+		ErrorHandler: func(ctx *fiber.Ctx, err error) error {
+			logger.ServerLog.Error(err)
+			// Status code defaults to 500
+			code := fiber.StatusInternalServerError
+
+			// Retrieve the custom status code if it's a *fiber.Error
+			var e *fiber.Error
+			if errors.As(err, &e) {
+				code = e.Code
+			}
+
+			// Send custom error page
+			err = ctx.Status(code).SendFile(fmt.Sprintf("./%d.html", code))
+			if err != nil {
+				// In case the SendFile fails
+				return ctx.Status(fiber.StatusInternalServerError).SendString("Internal Server Error")
+			}
+
+			// Return from handler
+			return nil
+		},
 	})
+
+	// ...
 
 	setMiddleware(app)
 	setHealthCheckRoutes(app)

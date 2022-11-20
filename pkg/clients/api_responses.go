@@ -22,5 +22,5 @@ type AccountApiResponse struct {
 type FloatAccountApiResponse struct {
 	ApiResponse
 
-	Data FloatAccount `json:"data"`
+	Data *FloatAccount `json:"data"`
 }

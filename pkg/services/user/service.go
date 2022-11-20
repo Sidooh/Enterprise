@@ -1,12 +1,12 @@
 package user
 
 import (
-	"enterprise.sidooh/api/presenter"
+	"enterprise.sidooh/pkg/entities"
 	"github.com/gofiber/fiber/v2"
 )
 
 type Service interface {
-	GetUser(id int) (*presenter.User, error)
+	GetUser(id int) (*entities.User, error)
 }
 
 type service struct {
@@ -14,7 +14,7 @@ type service struct {
 	repository Repository
 }
 
-func (s *service) GetUser(id int) (*presenter.User, error) {
+func (s *service) GetUser(id int) (*entities.User, error) {
 	return s.repository.ReadUser(id)
 }
 

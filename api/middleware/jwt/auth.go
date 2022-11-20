@@ -1,8 +1,10 @@
 package jwt
 
 import (
+	"enterprise.sidooh/pkg"
 	"enterprise.sidooh/pkg/datastore"
-	"enterprise.sidooh/pkg/services/auth"
+	"enterprise.sidooh/pkg/services/user"
+	"enterprise.sidooh/utils"
 	"errors"
 	"fmt"
 	"github.com/Permify/permify-gorm/options"
@@ -165,7 +167,7 @@ func Encode(claims *jwt.MapClaims, expiryAfter time.Duration) (string, error) {
     REQUIRED(Any middleware must have this)
 
 	Our main middleware function used to initialize our middleware.
-	By convention we name it "New" but any other name will work too.
+	By convention, we name it "New" but any other name will work too.
 */
 func New(config Config) fiber.Handler {
 
@@ -180,8 +182,11 @@ func New(config Config) fiber.Handler {
 		}
 
 		claims, err := cfg.Decode(c)
-
 		if err == nil {
+			if (*claims)["valid_mfa"].(bool) != true {
+				return utils.HandleErrorResponse(c, pkg.ErrUnauthorizedMfa)
+			}
+
 			c.Locals("jwtClaims", *claims)
 			err := setUserInContext(c, int((*claims)["id"].(float64)))
 			if err == nil {
@@ -194,9 +199,7 @@ func New(config Config) fiber.Handler {
 }
 
 func setUserInContext(c *fiber.Ctx, id int) error {
-	authRep := auth.NewRepo()
-
-	user, err := authRep.GetUserByIdWithEnterprise(id)
+	user, err := user.NewRepo().ReadUserByIdWithEnterprise(id)
 	if err != nil {
 		log.Error(err)
 		return err
@@ -211,7 +214,7 @@ func setUserInContext(c *fiber.Ctx, id int) error {
 	}
 	if totalCount == 0 {
 		log.Error("no roles set for " + user.Email)
-		return errors.New("unauthorized")
+		return pkg.ErrUnauthorized
 	}
 
 	c.Locals("user", user)

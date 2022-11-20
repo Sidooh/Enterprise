@@ -18,7 +18,7 @@ type ApiClient struct {
 	client  *http.Client
 	request *http.Request
 	baseUrl string
-	cache   cache.Cache[string, string]
+	cache   cache.ICache[string, string]
 }
 
 type AuthResponse struct {
@@ -32,7 +32,7 @@ type ApiResponse struct {
 	Errors  interface{} `json:"errors"`
 }
 
-var clientCache cache.Cache[string, string]
+var clientCache cache.ICache[string, string]
 
 func Init() {
 	logger.ClientLog.Println("Init client")
