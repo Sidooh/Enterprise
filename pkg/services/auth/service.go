@@ -52,7 +52,7 @@ func (s *service) Register(data presenter.Registration) (*presenter.EnterpriseWi
 
 	// Check user does not exist by email
 	userExists, err := s.userRepository.ReadUserByEmailOrPhone(data.Email, data.Phone)
-	if userExists != nil {
+	if userExists.Id != 0 {
 		return nil, pkg.ErrInvalidUser
 	}
 
