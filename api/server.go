@@ -96,7 +96,6 @@ func setHandlers(app *fiber.App) {
 	routes.UserRouter(v1, userSrv)
 	routes.AccountRouter(v1, accountSrv)
 	routes.TeamRouter(v1, teamSrv)
-
 }
 
 func Server() *fiber.App {
@@ -132,7 +131,6 @@ func Server() *fiber.App {
 
 	setMiddleware(app)
 	setHealthCheckRoutes(app)
-
 	setHandlers(app)
 
 	return app
