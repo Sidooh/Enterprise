@@ -16,6 +16,8 @@ func AuthRouter(app fiber.Router, service auth.Service) {
 	}), handlers.GetAuthUser(service))
 
 	app.Post("/auth/register", handlers.Register(service))
+	app.Post("/auth/verify", handlers.Verify(service))
+
 	app.Post("/auth/login", handlers.Login(service))
 
 	// V1 OTP handlers

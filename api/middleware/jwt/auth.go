@@ -205,6 +205,11 @@ func setUserInContext(c *fiber.Ctx, id int) error {
 		return err
 	}
 
+	if user.Enterprise.PhoneVerifiedAt == nil || user.Enterprise.EmailVerifiedAt == nil {
+		log.Error(user.Enterprise)
+		return pkg.ErrInvalidEnterprise
+	}
+
 	roles, totalCount, err := datastore.Permify.GetRolesOfUser(user.Id, options.RoleOption{
 		WithPermissions: true, // preload role's permissions
 	})
