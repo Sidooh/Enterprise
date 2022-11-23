@@ -11,6 +11,7 @@ import (
 	"enterprise.sidooh/pkg/services/enterprise"
 	"enterprise.sidooh/pkg/services/team"
 	"enterprise.sidooh/pkg/services/user"
+	"enterprise.sidooh/pkg/services/voucher"
 	"enterprise.sidooh/utils"
 	"errors"
 	"fmt"
@@ -85,6 +86,8 @@ func setHandlers(app *fiber.App) {
 	teamRep := team.NewRepo()
 	teamSrv := team.NewService(teamRep)
 
+	voucherSrv := voucher.NewService()
+
 	routes.AuthRouter(v1, authSrv)
 
 	app.Use(jwt.New(jwt.Config{
@@ -96,7 +99,7 @@ func setHandlers(app *fiber.App) {
 	routes.UserRouter(v1, userSrv)
 	routes.AccountRouter(v1, accountSrv)
 	routes.TeamRouter(v1, teamSrv)
-
+	routes.VoucherRouter(v1, voucherSrv)
 }
 
 func Server() *fiber.App {

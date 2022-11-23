@@ -18,6 +18,11 @@ func GetAccountClient() *ApiClient {
 	return accountClient
 }
 
+type AccountApiResponse struct {
+	ApiResponse
+	Data *Account `json:"data"`
+}
+
 func (api *ApiClient) GetOrCreateAccount(phone string) (*Account, error) {
 	var apiResponse = new(AccountApiResponse)
 

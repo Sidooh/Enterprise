@@ -13,14 +13,19 @@ type FloatAccount struct {
 	FloatableType string `json:"floatable_type"`
 }
 
-type AccountApiResponse struct {
-	ApiResponse
-
-	Data *Account `json:"data"`
+type VoucherType struct {
+	Id          int         `json:"id"`
+	Name        string      `json:"name"`
+	IsLocked    int         `json:"is_locked"`
+	LimitAmount int         `json:"limit_amount"`
+	ExpiresAt   string      `json:"expires_at,omitempty"`
+	Settings    interface{} `json:"settings"`
+	AccountId   int         `json:"account_id"`
+	Vouchers    []Voucher   `json:"vouchers,omitempty"`
 }
 
-type FloatAccountApiResponse struct {
-	ApiResponse
-
-	Data *FloatAccount `json:"data"`
+type Voucher struct {
+	Id        int `json:"id"`
+	AccountId int `json:"account_id"`
+	Balance   int `json:"balance"`
 }

@@ -183,7 +183,7 @@ func New(config Config) fiber.Handler {
 
 		claims, err := cfg.Decode(c)
 		if err == nil {
-			if (*claims)["valid_mfa"].(bool) != true {
+			if viper.GetBool("ENABLE_2FA") && (*claims)["valid_mfa"].(bool) != true {
 				return utils.HandleErrorResponse(c, pkg.ErrUnauthorizedMfa)
 			}
 

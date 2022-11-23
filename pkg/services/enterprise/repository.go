@@ -14,7 +14,6 @@ type Repository interface {
 	ReadEnterprise(id int) (*presenter.Enterprise, error)
 	ReadEnterpriseByEmailOrPhone(email string, phone string) (*presenter.Enterprise, error)
 	UpdateEnterprise(enterprise *entities.Enterprise, column string, value interface{}) (*entities.Enterprise, error)
-	//DeleteEnterprise(Id uint) error
 }
 type repository struct {
 }
