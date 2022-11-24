@@ -8,6 +8,7 @@ type Account struct {
 
 type FloatAccount struct {
 	Id            int    `json:"id"`
+	Balance       int    `json:"balance"`
 	AccountId     int    `json:"account_id"`
 	FloatableId   int    `json:"floatable_id"`
 	FloatableType string `json:"floatable_type"`

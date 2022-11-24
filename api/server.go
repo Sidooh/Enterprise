@@ -9,6 +9,7 @@ import (
 	"enterprise.sidooh/pkg/services/account"
 	"enterprise.sidooh/pkg/services/auth"
 	"enterprise.sidooh/pkg/services/enterprise"
+	"enterprise.sidooh/pkg/services/float"
 	"enterprise.sidooh/pkg/services/team"
 	"enterprise.sidooh/pkg/services/user"
 	"enterprise.sidooh/pkg/services/voucher"
@@ -87,6 +88,7 @@ func setHandlers(app *fiber.App) {
 	teamSrv := team.NewService(teamRep)
 
 	voucherSrv := voucher.NewService()
+	floatSrv := float.NewService(enterpriseRep)
 
 	routes.AuthRouter(v1, authSrv)
 
@@ -100,6 +102,7 @@ func setHandlers(app *fiber.App) {
 	routes.AccountRouter(v1, accountSrv)
 	routes.TeamRouter(v1, teamSrv)
 	routes.VoucherRouter(v1, voucherSrv)
+	routes.FloatRouter(v1, floatSrv)
 }
 
 func Server() *fiber.App {
