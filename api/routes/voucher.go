@@ -10,4 +10,5 @@ func VoucherRouter(app fiber.Router, service voucher.Service) {
 	app.Get("/voucher-types", handlers.GetVoucherTypes(service))
 	app.Post("/voucher-types", handlers.CreateVoucherType(service))
 	app.Get("/voucher-types/:id", handlers.GetVoucherType(service))
+	app.Post("/voucher-types/:id/disburse", handlers.DisburseVoucherType(service))
 }

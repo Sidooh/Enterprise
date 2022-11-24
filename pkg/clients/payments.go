@@ -29,6 +29,11 @@ type VoucherTypeApiResponse struct {
 	Data *VoucherType `json:"data"`
 }
 
+type VoucherApiResponse struct {
+	ApiResponse
+	Data *Voucher `json:"data"`
+}
+
 type FloatAccountApiResponse struct {
 	ApiResponse
 	Data *FloatAccount `json:"data"`
@@ -38,6 +43,10 @@ type FloatAccountTransactionsApiResponse struct {
 	ApiResponse
 	Data *[]FloatAccountTransaction `json:"data"`
 }
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// FLOAT ACCOUNTS
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 func (api *ApiClient) CreateFloatAccount(enterpriseId, accountId int) (*FloatAccount, error) {
 	var apiResponse = new(FloatAccountApiResponse)
@@ -53,6 +62,48 @@ func (api *ApiClient) CreateFloatAccount(enterpriseId, accountId int) (*FloatAcc
 
 	return apiResponse.Data, err
 }
+
+func (api *ApiClient) CreditFloatAccount(accountId, floatAccountId, amount, phone int) (*interface{}, error) {
+	var apiResponse = new(ApiResponse)
+
+	jsonData, err := json.Marshal(map[string]interface{}{
+		"account_id":     accountId,
+		"amount":         amount,
+		"description":    "Float Credit",
+		"reference":      "ENTERPRISE",
+		"source":         "MPESA",
+		"source_account": phone,
+		"float_account":  floatAccountId,
+	})
+	dataBytes := bytes.NewBuffer(jsonData)
+
+	var endpoint = "/float-accounts/credit"
+	err = api.NewRequest(http.MethodPost, endpoint, dataBytes).Send(apiResponse)
+
+	return &apiResponse.Data, err
+}
+
+func (api *ApiClient) FetchFloatAccount(accountId int) (*FloatAccount, error) {
+	var apiResponse = new(FloatAccountApiResponse)
+
+	var endpoint = "/float-accounts/" + strconv.Itoa(accountId)
+	err := api.NewRequest(http.MethodGet, endpoint, nil).Send(apiResponse)
+
+	return apiResponse.Data, err
+}
+
+func (api *ApiClient) FetchFloatAccountTransactions(accountId int) (*[]FloatAccountTransaction, error) {
+	var apiResponse = new(FloatAccountTransactionsApiResponse)
+
+	var endpoint = "/float-accounts/" + strconv.Itoa(accountId) + "/transactions"
+	err := api.NewRequest(http.MethodGet, endpoint, nil).Send(apiResponse)
+
+	return apiResponse.Data, err
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// VOUCHER TYPES
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 func (api *ApiClient) FetchVoucherTypes(accountId int) (*[]VoucherType, error) {
 	var apiResponse = new(VoucherTypesApiResponse)
@@ -86,40 +137,40 @@ func (api *ApiClient) CreateVoucherType(accountId int, name string) (*VoucherTyp
 	return apiResponse.Data.(*VoucherType), err
 }
 
-func (api *ApiClient) FetchFloatAccount(accountId int) (*FloatAccount, error) {
-	var apiResponse = new(FloatAccountApiResponse)
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// VOUCHERS
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-	var endpoint = "/float-accounts/" + strconv.Itoa(accountId)
-	err := api.NewRequest(http.MethodGet, endpoint, nil).Send(apiResponse)
-
-	return apiResponse.Data, err
-}
-
-func (api *ApiClient) FetchFloatAccountTransactions(accountId int) (*[]FloatAccountTransaction, error) {
-	var apiResponse = new(FloatAccountTransactionsApiResponse)
-
-	var endpoint = "/float-accounts/" + strconv.Itoa(accountId) + "/transactions"
-	err := api.NewRequest(http.MethodGet, endpoint, nil).Send(apiResponse)
-
-	return apiResponse.Data, err
-}
-
-func (api *ApiClient) CreditFloatAccount(accountId, floatAccountId, amount, phone int) (*interface{}, error) {
+func (api *ApiClient) DisburseVoucher(accountId, floatAccountId, voucherId, amount int) (*VoucherType, error) {
 	var apiResponse = new(ApiResponse)
 
 	jsonData, err := json.Marshal(map[string]interface{}{
 		"account_id":     accountId,
 		"amount":         amount,
-		"description":    "Float Credit",
+		"description":    "Voucher Disbursement",
 		"reference":      "ENTERPRISE",
-		"source":         "MPESA",
-		"source_account": phone,
-		"float_account":  floatAccountId,
+		"source":         "FLOAT",
+		"source_account": floatAccountId,
+		"voucher":        voucherId,
 	})
 	dataBytes := bytes.NewBuffer(jsonData)
 
-	var endpoint = "/float-accounts/credit"
-	err = api.NewRequest(http.MethodPost, endpoint, dataBytes).Send(apiResponse)
+	err = api.NewRequest(http.MethodPost, "/vouchers/credit", dataBytes).Send(apiResponse)
 
-	return &apiResponse.Data, err
+	return apiResponse.Data.(*VoucherType), err
+}
+
+func (api *ApiClient) CreateVoucher(enterpriseAccountId, accountId, voucherTypeId int) (*Voucher, error) {
+	var apiResponse = new(VoucherApiResponse)
+
+	jsonData, err := json.Marshal(map[string]interface{}{
+		"account_id":         enterpriseAccountId,
+		"voucher_account_id": accountId,
+		"voucher_type_id":    voucherTypeId,
+	})
+	dataBytes := bytes.NewBuffer(jsonData)
+
+	err = api.NewRequest(http.MethodPost, "/vouchers", dataBytes).Send(apiResponse)
+
+	return apiResponse.Data, err
 }

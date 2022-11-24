@@ -14,6 +14,11 @@ type CreateVoucherTypeRequest struct {
 	Name string `json:"name" validate:"required"`
 }
 
+type DisburseVoucherTypeRequest struct {
+	AccountId int `json:"account_id" validate:"required,numeric"`
+	Amount    int `json:"amount" validate:"required,numeric,min=100,max=10000"`
+}
+
 func GetVoucherType(service voucher.Service) fiber.Handler {
 	return func(ctx *fiber.Ctx) error {
 		id, err := ctx.ParamsInt("id")
@@ -77,6 +82,37 @@ func CreateVoucherType(service voucher.Service) fiber.Handler {
 		if utils.IsAdmin(ctx) {
 			enterpriseId := utils.GetEnterpriseId(ctx)
 			fetched, err = service.CreateVoucherType(enterpriseId, request.Name)
+		} else {
+			return utils.HandleUnauthorized(ctx)
+		}
+
+		if err != nil {
+			return utils.HandleErrorResponse(ctx, err)
+		}
+
+		return utils.HandleSuccessResponse(ctx, fetched)
+	}
+}
+
+func DisburseVoucherType(service voucher.Service) fiber.Handler {
+	return func(ctx *fiber.Ctx) error {
+		id, err := ctx.ParamsInt("id")
+		if err != nil {
+			ctx.Status(http.StatusBadRequest)
+			return ctx.JSON(utils.ValidationErrorResponse(errors.New("invalid id parameter")))
+		}
+
+		var request DisburseVoucherTypeRequest
+		if err = middleware.BindAndValidateRequest(ctx, &request); err != nil {
+			return ctx.Status(http.StatusUnprocessableEntity).JSON(err)
+		}
+
+		fetched := new(clients.VoucherType)
+
+		// TODO: Use permissions for this part - determine who can add voucherTypes
+		if utils.IsAdmin(ctx) {
+			enterprise := utils.GetEnterprise(ctx)
+			fetched, err = service.DisburseVoucherType(enterprise, id, request.AccountId, request.Amount)
 		} else {
 			return utils.HandleUnauthorized(ctx)
 		}
