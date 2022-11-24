@@ -8,4 +8,5 @@ import (
 
 func FloatRouter(app fiber.Router, service float.Service) {
 	app.Get("/float-account", handlers.GetFloatAccount(service))
+	app.Get("/float-account/transactions", handlers.GetFloatAccountTransactions(service))
 }

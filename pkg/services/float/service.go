@@ -9,6 +9,7 @@ import (
 
 type Service interface {
 	GetFloatAccountForEnterprise(enterprise entities.Enterprise) (*clients.FloatAccount, error)
+	GetFloatAccountTransactionsForEnterprise(enterprise entities.Enterprise) (*[]clients.FloatAccountTransaction, error)
 }
 
 type service struct {
@@ -18,6 +19,15 @@ type service struct {
 
 func (s *service) GetFloatAccountForEnterprise(enterprise entities.Enterprise) (*clients.FloatAccount, error) {
 	response, err := s.paymentsApi.FetchFloatAccount(int(enterprise.FloatAccountId))
+	if err != nil {
+		return nil, pkg.ErrServerError
+	}
+
+	return response, nil
+}
+
+func (s *service) GetFloatAccountTransactionsForEnterprise(enterprise entities.Enterprise) (*[]clients.FloatAccountTransaction, error) {
+	response, err := s.paymentsApi.FetchFloatAccountTransactions(int(enterprise.FloatAccountId))
 	if err != nil {
 		return nil, pkg.ErrServerError
 	}

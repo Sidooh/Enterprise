@@ -28,3 +28,25 @@ func GetFloatAccount(service float.Service) fiber.Handler {
 		return utils.HandleSuccessResponse(ctx, fetched)
 	}
 }
+
+func GetFloatAccountTransactions(service float.Service) fiber.Handler {
+	return func(ctx *fiber.Ctx) error {
+		fetched := new([]clients.FloatAccountTransaction)
+		err := *new(error)
+
+		/*if utils.IsSuperAdmin(ctx) {
+			fetched, err = service.GetFloatAccount(id)
+		} else */if utils.IsAdmin(ctx) {
+			enterprise := utils.GetEnterprise(ctx)
+			fetched, err = service.GetFloatAccountTransactionsForEnterprise(enterprise)
+		} else {
+			return utils.HandleUnauthorized(ctx)
+		}
+
+		if err != nil {
+			return utils.HandleErrorResponse(ctx, err)
+		}
+
+		return utils.HandleSuccessResponse(ctx, fetched)
+	}
+}

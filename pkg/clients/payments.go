@@ -34,6 +34,11 @@ type FloatAccountApiResponse struct {
 	Data *FloatAccount `json:"data"`
 }
 
+type FloatAccountTransactionsApiResponse struct {
+	ApiResponse
+	Data *[]FloatAccountTransaction `json:"data"`
+}
+
 func (api *ApiClient) CreateFloatAccount(enterpriseId, accountId int) (*FloatAccount, error) {
 	var apiResponse = new(FloatAccountApiResponse)
 
@@ -84,7 +89,16 @@ func (api *ApiClient) CreateVoucherType(accountId int, name string) (*VoucherTyp
 func (api *ApiClient) FetchFloatAccount(accountId int) (*FloatAccount, error) {
 	var apiResponse = new(FloatAccountApiResponse)
 
-	var endpoint = "http://localhost:8002/api/v1/float-accounts/" + strconv.Itoa(accountId)
+	var endpoint = "/float-accounts/" + strconv.Itoa(accountId)
+	err := api.NewRequest(http.MethodGet, endpoint, nil).Send(apiResponse)
+
+	return apiResponse.Data, err
+}
+
+func (api *ApiClient) FetchFloatAccountTransactions(accountId int) (*[]FloatAccountTransaction, error) {
+	var apiResponse = new(FloatAccountTransactionsApiResponse)
+
+	var endpoint = "/float-accounts/" + strconv.Itoa(accountId) + "/transactions"
 	err := api.NewRequest(http.MethodGet, endpoint, nil).Send(apiResponse)
 
 	return apiResponse.Data, err

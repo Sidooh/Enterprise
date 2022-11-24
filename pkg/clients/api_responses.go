@@ -1,5 +1,7 @@
 package clients
 
+import "time"
+
 type Account struct {
 	Id     int    `json:"id"`
 	Phone  string `json:"phone"`
@@ -12,6 +14,15 @@ type FloatAccount struct {
 	AccountId     int    `json:"account_id"`
 	FloatableId   int    `json:"floatable_id"`
 	FloatableType string `json:"floatable_type"`
+}
+
+type FloatAccountTransaction struct {
+	Id             int       `json:"id"`
+	Type           string    `json:"type"`
+	Amount         int       `json:"amount"`
+	Description    string    `json:"description"`
+	FloatAccountId int       `json:"float_account_id"`
+	CreatedAt      time.Time `json:"created_at"`
 }
 
 type VoucherType struct {
