@@ -103,3 +103,23 @@ func (api *ApiClient) FetchFloatAccountTransactions(accountId int) (*[]FloatAcco
 
 	return apiResponse.Data, err
 }
+
+func (api *ApiClient) CreditFloatAccount(accountId, floatAccountId, amount, phone int) (*interface{}, error) {
+	var apiResponse = new(ApiResponse)
+
+	jsonData, err := json.Marshal(map[string]interface{}{
+		"account_id":     accountId,
+		"amount":         amount,
+		"description":    "Float Credit",
+		"reference":      "ENTERPRISE",
+		"source":         "MPESA",
+		"source_account": phone,
+		"float_account":  floatAccountId,
+	})
+	dataBytes := bytes.NewBuffer(jsonData)
+
+	var endpoint = "/float-accounts/credit"
+	err = api.NewRequest(http.MethodPost, endpoint, dataBytes).Send(apiResponse)
+
+	return &apiResponse.Data, err
+}

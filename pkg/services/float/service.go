@@ -10,6 +10,7 @@ import (
 type Service interface {
 	GetFloatAccountForEnterprise(enterprise entities.Enterprise) (*clients.FloatAccount, error)
 	GetFloatAccountTransactionsForEnterprise(enterprise entities.Enterprise) (*[]clients.FloatAccountTransaction, error)
+	CreditFloatAccountForEnterprise(enterprise entities.Enterprise, amount, phone int) (*clients.FloatAccount, error)
 }
 
 type service struct {
@@ -33,6 +34,15 @@ func (s *service) GetFloatAccountTransactionsForEnterprise(enterprise entities.E
 	}
 
 	return response, nil
+}
+
+func (s *service) CreditFloatAccountForEnterprise(enterprise entities.Enterprise, amount, phone int) (*clients.FloatAccount, error) {
+	_, err := s.paymentsApi.CreditFloatAccount(int(enterprise.AccountId), int(enterprise.FloatAccountId), amount, phone)
+	if err != nil {
+		return nil, pkg.ErrServerError
+	}
+
+	return s.GetFloatAccountForEnterprise(enterprise)
 }
 
 func NewService(enterpriseRepository enterprise.Repository) Service {
