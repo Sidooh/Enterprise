@@ -171,7 +171,7 @@ func (s *service) GenerateOTP(id int, channel string) error {
 		return pkg.ErrUnauthorized
 	}
 
-	otp := utils.RandomInt(100000, 999999)
+	otp := utils.RandomInt(6)
 
 	// Send OTP to phone number
 	message := fmt.Sprintf("S-%v is your verification code.", otp)

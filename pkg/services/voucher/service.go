@@ -5,7 +5,6 @@ import (
 	"enterprise.sidooh/pkg/clients"
 	"enterprise.sidooh/pkg/entities"
 	"enterprise.sidooh/pkg/services/account"
-	"fmt"
 	"golang.org/x/exp/slices"
 )
 
@@ -65,9 +64,8 @@ func (s *service) DisburseVoucherType(enterprise entities.Enterprise, voucherTyp
 		return v.AccountId == int(account.AccountId)
 	})
 
-	voucherId := 0
+	var voucherId int
 
-	fmt.Println(index)
 	if index < 0 {
 		voucher, err := s.paymentsApi.CreateVoucher(int(enterprise.AccountId), accountId, voucherTypeId)
 		if err != nil {
