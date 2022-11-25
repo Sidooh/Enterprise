@@ -3,9 +3,11 @@ package utils
 import (
 	"crypto/rand"
 	"encoding/hex"
+	"enterprise.sidooh/pkg/cache"
 	"fmt"
 	"golang.org/x/crypto/argon2"
 	"strings"
+	"time"
 )
 
 func HashPassword(password string) (string, error) {
@@ -30,4 +32,13 @@ func VerifyPassword(storedPassword string, suppliedPassword string) bool {
 	buf := argon2.IDKey([]byte(suppliedPassword), salt, 2, 32*1024, 1, 64)
 
 	return hex.EncodeToString(buf) == split[0]
+}
+
+func CheckOTP(key string, otp int) bool {
+	savedOtp := cache.Cache.Get(fmt.Sprintf("otp_%s", key))
+	return savedOtp != nil && (*savedOtp).(int) == otp
+}
+
+func SetOTP(key string, otp int) {
+	cache.Cache.Set(fmt.Sprintf("otp_%s", key), otp, 5*time.Minute)
 }

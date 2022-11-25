@@ -3,7 +3,6 @@ package auth
 import (
 	"enterprise.sidooh/api/presenter"
 	"enterprise.sidooh/pkg"
-	"enterprise.sidooh/pkg/cache"
 	"enterprise.sidooh/pkg/clients"
 	"enterprise.sidooh/pkg/datastore"
 	"enterprise.sidooh/pkg/entities"
@@ -19,6 +18,7 @@ import (
 type Service interface {
 	User(id int) (*presenter.UserWithRelations, error)
 	Register(data presenter.Registration) (*presenter.EnterpriseWithUser, error)
+	Verify(id int, phoneOtp int, emailOtp int) (*presenter.EnterpriseWithUser, error)
 	Login(data presenter.Login) (*presenter.LoginResponse, error)
 
 	GenerateOTP(id int, channel string) error
@@ -45,14 +45,14 @@ func (s *service) User(id int) (*presenter.UserWithRelations, error) {
 
 func (s *service) Register(data presenter.Registration) (*presenter.EnterpriseWithUser, error) {
 	// Check enterprise does not exist, by email, phone or name
-	enterpriseExists, err := s.enterpriseRepository.ReadEnterpriseByEmailOrPhone(data.Email, data.Phone)
-	if enterpriseExists != nil {
+	_, err := s.enterpriseRepository.ReadEnterpriseByEmailOrPhone(data.Email, data.Phone)
+	if err == nil {
 		return nil, pkg.ErrInvalidEnterprise
 	}
 
 	// Check user does not exist by email
-	userExists, err := s.userRepository.ReadUserByEmailOrPhone(data.Email, data.Phone)
-	if userExists.Id != 0 {
+	_, err = s.userRepository.ReadUserByEmailOrPhone(data.Email, data.Phone)
+	if err == nil {
 		return nil, pkg.ErrInvalidUser
 	}
 
@@ -102,22 +102,42 @@ func (s *service) Register(data presenter.Registration) (*presenter.EnterpriseWi
 		return nil, err
 	}
 
+	// send otps for verification
+	go func() {
+		_ = s.GenerateOTP(int(user.Id), "SMS")
+		_ = s.GenerateOTP(int(user.Id), "MAIL")
+	}()
+
 	// return data
-	return &presenter.EnterpriseWithUser{
-		Enterprise: presenter.Enterprise{
-			Id:      updatedEnterprise.Id,
-			Name:    updatedEnterprise.Name,
-			Country: updatedEnterprise.Country,
-			Address: updatedEnterprise.Address,
-			Phone:   updatedEnterprise.Phone,
-			Email:   updatedEnterprise.Email,
-		},
-		User: presenter.User{
-			Id:    user.Id,
-			Name:  user.Name,
-			Email: user.Email,
-		},
-	}, nil
+	return getEnterpriseData(entities.UserWithEnterprise{
+		User:       *user,
+		Enterprise: *updatedEnterprise,
+	}), nil
+}
+
+func (s *service) Verify(id int, phoneOtp int, emailOtp int) (*presenter.EnterpriseWithUser, error) {
+	user, err := s.userRepository.ReadUserByIdWithEnterprise(id)
+	if err != nil {
+		log.Error(err)
+		return nil, pkg.ErrUnauthorized
+	}
+
+	if utils.CheckOTP(user.Phone, phoneOtp) && utils.CheckOTP(user.Email, emailOtp) {
+		updateEnterprise, err := s.enterpriseRepository.UpdateEnterprise(&user.Enterprise, "phone_verified_at", time.Now())
+		if err != nil {
+			return nil, err
+		}
+		updateEnterprise, err = s.enterpriseRepository.UpdateEnterprise(&user.Enterprise, "email_verified_at", time.Now())
+		if err != nil {
+			return nil, err
+		}
+
+		user.Enterprise = *updateEnterprise
+
+		return getEnterpriseData(*user), nil
+	}
+
+	return nil, pkg.ErrUnauthorized
 }
 
 func (s *service) Login(data presenter.Login) (*presenter.LoginResponse, error) {
@@ -125,6 +145,10 @@ func (s *service) Login(data presenter.Login) (*presenter.LoginResponse, error) 
 	if err != nil {
 		log.Error(err)
 		return nil, pkg.ErrUnauthorized
+	}
+
+	if user.Enterprise.PhoneVerifiedAt == nil || user.Enterprise.EmailVerifiedAt == nil {
+		return nil, pkg.ErrInvalidEnterprise
 	}
 
 	res := utils.VerifyPassword(user.Password, data.Password)
@@ -147,18 +171,22 @@ func (s *service) GenerateOTP(id int, channel string) error {
 		return pkg.ErrUnauthorized
 	}
 
-	otp := utils.RandomInt(100000, 999999)
+	otp := utils.RandomInt(6)
 
 	// Send OTP to phone number
 	message := fmt.Sprintf("S-%v is your verification code.", otp)
+	destination := user.Phone
+	f := s.notifyApi.SendSMS
+
 	switch channel {
 	case utils.MAIL:
-		err = s.notifyApi.SendMail("DEFAULT", user.Email, message)
-	default:
-		err = s.notifyApi.SendSMS("DEFAULT", user.Phone, message)
+		destination = user.Email
+		f = s.notifyApi.SendMail
 	}
 
-	cache.Cache.Set(fmt.Sprintf("otp_%s", user.Phone), otp, 5*time.Minute)
+	err = f("DEFAULT", destination, message)
+
+	utils.SetOTP(destination, int(otp))
 
 	return err
 }
@@ -170,8 +198,7 @@ func (s *service) ValidateOTP(id int, otp int) (*presenter.LoginResponse, error)
 		return nil, pkg.ErrUnauthorized
 	}
 
-	savedOtp := cache.Cache.Get(fmt.Sprintf("otp_%s", user.Phone))
-	if savedOtp == nil || int((*savedOtp).(int64)) != otp {
+	if !utils.CheckOTP(user.Phone, otp) && !utils.CheckOTP(user.Email, otp) {
 		return nil, pkg.ErrUnauthorized
 	}
 
@@ -209,6 +236,24 @@ func getUserData(user entities.UserWithEnterprise) (*presenter.UserWithRelations
 	}
 
 	return userData, nil
+}
+
+func getEnterpriseData(user entities.UserWithEnterprise) *presenter.EnterpriseWithUser {
+	return &presenter.EnterpriseWithUser{
+		Enterprise: presenter.Enterprise{
+			Id:      user.Enterprise.Id,
+			Name:    user.Enterprise.Name,
+			Country: user.Enterprise.Country,
+			Address: user.Enterprise.Address,
+			Phone:   user.Enterprise.Phone,
+			Email:   user.Enterprise.Email,
+		},
+		User: presenter.User{
+			Id:    user.Id,
+			Name:  user.Name,
+			Email: user.Email,
+		},
+	}
 }
 
 func NewService(userRepository user.Repository) Service {

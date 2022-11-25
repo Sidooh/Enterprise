@@ -41,6 +41,12 @@ type RegisterRequest struct {
 	Password  string `json:"password" validate:"required,min=10,max=64"`
 }
 
+type VerificationRequest struct {
+	Id       int `json:"id" validate:"required,numeric"`
+	PhoneOtp int `json:"phone_otp" validate:"required,numeric,min=100000,max=999999"`
+	EmailOtp int `json:"email_otp" validate:"required,numeric,min=100000,max=999999"`
+}
+
 type LoginResponse struct {
 	AccessToken  string `json:"access_token"`
 	RefreshToken string `json:"refresh_token,omitempty"`
@@ -103,6 +109,22 @@ func Register(service auth.Service) fiber.Handler {
 		}
 
 		return utils.HandleSuccessResponse(ctx, register)
+	}
+}
+
+func Verify(service auth.Service) fiber.Handler {
+	return func(ctx *fiber.Ctx) error {
+		var request VerificationRequest
+		if err := middleware.BindAndValidateRequest(ctx, &request); err != nil {
+			return ctx.Status(http.StatusUnprocessableEntity).JSON(err)
+		}
+
+		authData, err := service.Verify(request.Id, request.PhoneOtp, request.EmailOtp)
+		if err != nil {
+			return utils.HandleErrorResponse(ctx, err)
+		}
+
+		return utils.HandleSuccessResponse(ctx, authData)
 	}
 }
 

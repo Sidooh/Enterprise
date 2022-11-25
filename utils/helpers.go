@@ -26,6 +26,14 @@ func IsAdmin(ctx *fiber.Ctx) bool {
 	return HasRole(ctx, ADMIN)
 }
 
+func GetUser(ctx *fiber.Ctx) *entities.UserWithEnterprise {
+	return ctx.Locals("user").(*entities.UserWithEnterprise)
+}
+
+func GetEnterprise(ctx *fiber.Ctx) entities.Enterprise {
+	return GetUser(ctx).Enterprise
+}
+
 func GetEnterpriseId(ctx *fiber.Ctx) int {
-	return int(ctx.Locals("user").(*entities.UserWithEnterprise).EnterpriseId)
+	return int(GetUser(ctx).EnterpriseId)
 }

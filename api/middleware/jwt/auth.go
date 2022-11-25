@@ -183,7 +183,7 @@ func New(config Config) fiber.Handler {
 
 		claims, err := cfg.Decode(c)
 		if err == nil {
-			if (*claims)["valid_mfa"].(bool) != true {
+			if viper.GetBool("ENABLE_2FA") && (*claims)["valid_mfa"].(bool) != true {
 				return utils.HandleErrorResponse(c, pkg.ErrUnauthorizedMfa)
 			}
 
@@ -203,6 +203,11 @@ func setUserInContext(c *fiber.Ctx, id int) error {
 	if err != nil {
 		log.Error(err)
 		return err
+	}
+
+	if user.Enterprise.PhoneVerifiedAt == nil || user.Enterprise.EmailVerifiedAt == nil {
+		log.Error(user.Enterprise)
+		return pkg.ErrInvalidEnterprise
 	}
 
 	roles, totalCount, err := datastore.Permify.GetRolesOfUser(user.Id, options.RoleOption{

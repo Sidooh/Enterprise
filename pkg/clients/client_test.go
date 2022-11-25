@@ -67,8 +67,8 @@ func performUrlTest(t *testing.T, testData map[string]string) {
 
 type RoundTripFunc func(req *http.Request) *http.Response
 
-func (r RoundTripFunc) RoundTrip(req *http.Request) (*http.Response, error) {
-	return r(req), nil
+func (f RoundTripFunc) RoundTrip(req *http.Request) (*http.Response, error) {
+	return f(req), nil
 }
 
 func initTestClient(fn RoundTripFunc) {
@@ -84,7 +84,7 @@ func authSuccessRequest(t *testing.T) RoundTripFunc {
 		return &http.Response{
 			StatusCode: 200,
 			// Send response to be tested
-			Body: ioutil.NopCloser(strings.NewReader("{\"access_token\":\"testToken\"}")),
+			Body: ioutil.NopCloser(strings.NewReader(`{"access_token":"testToken"}`)),
 			// Must be set to non-nil value, or it panics
 			//Header: make(http.Header),
 		}

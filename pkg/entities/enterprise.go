@@ -9,9 +9,9 @@ type Enterprise struct {
 	Country         string     `json:"country"`
 	Address         string     `json:"address"`
 	Phone           string     `json:"phone" gorm:"unique"`
-	PhoneVerifiedAt *time.Time `gorm:"type:timestamp" json:"-"`
+	PhoneVerifiedAt *time.Time `gorm:"type:timestamp null" json:"-"`
 	Email           string     `json:"email" gorm:"unique"`
-	EmailVerifiedAt *time.Time `gorm:"type:timestamp" json:"-"`
+	EmailVerifiedAt *time.Time `gorm:"type:timestamp null" json:"-"`
 
 	AccountId      uint `json:"account_id" gorm:"uniqueIndex"`
 	FloatAccountId uint `json:"float_account_id" gorm:"uniqueIndex"`

@@ -3,6 +3,7 @@ package clients
 import (
 	"bytes"
 	"encoding/json"
+	"errors"
 	"github.com/spf13/viper"
 	"net/http"
 )
@@ -18,19 +19,47 @@ func GetAccountClient() *ApiClient {
 	return accountClient
 }
 
-func (api *ApiClient) GetOrCreateAccount(phone string) (*Account, error) {
+type AccountApiResponse struct {
+	ApiResponse
+	Data *Account `json:"data"`
+}
+
+func (api *ApiClient) CreateAccount(phone string) (*Account, error) {
 	var apiResponse = new(AccountApiResponse)
 
 	jsonData, err := json.Marshal(map[string]string{"phone": phone})
 	dataBytes := bytes.NewBuffer(jsonData)
 
 	err = api.NewRequest(http.MethodPost, "/accounts", dataBytes).Send(apiResponse)
-	if err != nil || apiResponse.Result == 0 {
-		err = api.NewRequest(http.MethodGet, "/accounts/phone/"+phone, nil).Send(apiResponse)
+	if err != nil {
+		return nil, err
+	}
+	if apiResponse.Result == 0 {
+		return nil, errors.New(apiResponse.Message)
+	}
+
+	return apiResponse.Data, nil
+}
+
+func (api *ApiClient) GetAccount(phone string) (*Account, error) {
+	var apiResponse = new(AccountApiResponse)
+
+	err := api.NewRequest(http.MethodGet, "/accounts/phone/"+phone, nil).Send(apiResponse)
+	if err != nil {
+		return nil, err
+	}
+
+	return apiResponse.Data, nil
+}
+
+func (api *ApiClient) GetOrCreateAccount(phone string) (*Account, error) {
+	account, err := api.CreateAccount(phone)
+	if err != nil {
+		account, err = api.GetAccount(phone)
 		if err != nil {
 			return nil, err
 		}
 	}
 
-	return apiResponse.Data, nil
+	return account, nil
 }
