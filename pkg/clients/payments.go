@@ -123,7 +123,7 @@ func (api *ApiClient) FetchVoucherType(accountId, voucherTypeId int) (*VoucherTy
 }
 
 func (api *ApiClient) CreateVoucherType(accountId int, name string) (*VoucherType, error) {
-	var apiResponse = new(ApiResponse)
+	var apiResponse = new(VoucherTypeApiResponse)
 
 	jsonData, err := json.Marshal(map[string]string{
 		"initiator":  "ENTERPRISE",
@@ -134,7 +134,7 @@ func (api *ApiClient) CreateVoucherType(accountId int, name string) (*VoucherTyp
 
 	err = api.NewRequest(http.MethodPost, "/voucher-types", dataBytes).Send(apiResponse)
 
-	return apiResponse.Data.(*VoucherType), err
+	return apiResponse.Data, err
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
