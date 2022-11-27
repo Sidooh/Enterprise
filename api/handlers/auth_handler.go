@@ -96,10 +96,15 @@ func Register(service auth.Service) fiber.Handler {
 			}
 		}
 
+		phone, err := utils.GetPhoneByCountry("KE", request.Phone)
+		if err != nil {
+			return ctx.Status(http.StatusUnprocessableEntity).JSON(err)
+		}
+
 		register, err := service.Register(presenter.Registration{
 			Name:      request.Name,
 			AdminName: request.AdminName,
-			Phone:     request.Phone,
+			Phone:     phone,
 			Email:     request.Email,
 			Password:  request.Password,
 		})

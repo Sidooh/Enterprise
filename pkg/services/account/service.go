@@ -4,6 +4,7 @@ import (
 	"enterprise.sidooh/pkg"
 	"enterprise.sidooh/pkg/clients"
 	"enterprise.sidooh/pkg/entities"
+	"golang.org/x/exp/slices"
 )
 
 type Service interface {
@@ -13,6 +14,7 @@ type Service interface {
 
 	FetchAccountsForEnterprise(enterpriseId int) (*[]entities.Account, error)
 	GetAccountForEnterprise(enterpriseId int, id int) (*entities.Account, error)
+	CreateBulkAccounts(accounts []entities.Account) (*[]entities.Account, map[string]string)
 }
 
 type service struct {
@@ -34,7 +36,6 @@ func (s *service) CreateAccount(account *entities.Account) (*entities.Account, e
 		return nil, pkg.ErrInvalidAccount
 	}
 
-	// TODO: Refactor these common api calls
 	response, err := s.accountsApi.GetOrCreateAccount(account.Phone)
 	if err != nil {
 		return nil, pkg.ErrServerError
@@ -52,6 +53,53 @@ func (s *service) FetchAccountsForEnterprise(enterpriseId int) (*[]entities.Acco
 
 func (s *service) GetAccountForEnterprise(enterpriseId int, id int) (*entities.Account, error) {
 	return s.accountRepository.ReadEnterpriseAccount(enterpriseId, id)
+}
+
+func (s *service) CreateBulkAccounts(accounts []entities.Account) (*[]entities.Account, map[string]string) {
+	var phones []string
+	for _, account := range accounts {
+		phones = append(phones, account.Phone)
+	}
+	existingAccounts, err := s.accountRepository.ReadEnterpriseAccountsByPhone(int(accounts[0].EnterpriseId), phones)
+	if err != nil {
+		panic("something went wrong")
+	}
+
+	var existingPhones []string
+	for _, account := range *existingAccounts {
+		if slices.Contains(phones, account.Phone) {
+			existingPhones = append(existingPhones, account.Phone)
+		}
+	}
+
+	var newAccounts []entities.Account
+	exceptions := map[string]string{}
+
+	for _, account := range accounts {
+		if slices.Contains(existingPhones, account.Phone) {
+			exceptions[account.Phone] = "account already exists"
+			continue
+		}
+
+		response, err := s.accountsApi.GetOrCreateAccount(account.Phone)
+		if err != nil {
+			exceptions[account.Phone] = "could not create account, try again"
+			continue
+		}
+
+		account.AccountId = uint(response.Id)
+		account.Phone = response.Phone
+
+		a, err := s.accountRepository.CreateAccount(&account)
+		if err != nil {
+			exceptions[account.Phone] = err.Error()
+			continue
+		} else {
+			newAccounts = append(newAccounts, *a)
+		}
+	}
+
+	return &newAccounts, exceptions
 }
 
 func NewService(account Repository) Service {

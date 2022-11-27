@@ -11,13 +11,11 @@ type Repository interface {
 	ReadAccounts() (*[]entities.Account, error)
 	ReadAccount(id int) (*entities.Account, error)
 	CreateAccount(account *entities.Account) (*entities.Account, error)
-	//ReadAccountByEmailOrPhone(email string, phone string) (*entities.Account, error)
-	//UpdateAccount(account *entities.Account, column string, value interface{}) (*entities.Account, error)
-	//DeleteAccount(Id uint) error
 
 	ReadEnterpriseAccounts(enterpriseId int) (*[]entities.Account, error)
 	ReadEnterpriseAccount(enterpriseId int, id int) (*entities.Account, error)
 	ReadEnterpriseAccountByPhone(enterpriseId int, phone string) (*entities.Account, error)
+	ReadEnterpriseAccountsByPhone(enterpriseId int, phones []string) (*[]entities.Account, error)
 }
 type repository struct {
 }
@@ -36,16 +34,6 @@ func (r *repository) ReadAccount(id int) (account *entities.Account, err error) 
 	err = datastore.DB.First(&account, id).Error
 	return
 }
-
-//func (r *repository) ReadAccountByEmailOrPhone(email string, phone string) (*presenter.Account, error) {
-//	var account presenter.Account
-//	result := datastore.DB.Where("email", email).Or("phone LIKE ?", fmt.Sprintf("%%%s%%", phone)).First(&account)
-//	if result.Error != nil {
-//		return nil, result.Error
-//	}
-//
-//	return &account, nil
-//}
 
 func (r *repository) UpdateAccount(account *entities.Account, column string, value interface{}) (a *entities.Account, err error) {
 	err = datastore.DB.Model(&account).Update(column, value).Error
@@ -69,6 +57,23 @@ func (r *repository) ReadEnterpriseAccount(enterpriseId int, id int) (account *e
 func (r *repository) ReadEnterpriseAccountByPhone(enterpriseId int, phone string) (account *entities.Account, err error) {
 	err = datastore.DB.Where("enterprise_id", enterpriseId).
 		Where("phone LIKE ?", fmt.Sprintf("%%%s%%", phone)).First(&account).Error
+	return
+}
+
+//func (r *repository) ReadEnterpriseAccountsByPhone(enterpriseId int, phones []string) (account *[]entities.Account, err error) {
+//	regexp := ""
+//	for _, phone := range phones {
+//		regexp += phone + "|"
+//	}
+//
+//	err = datastore.DB.Where("enterprise_id", enterpriseId).
+//		Where("phone REGEXP ?", regexp).First(&account).Error
+//	return
+//}
+
+func (r *repository) ReadEnterpriseAccountsByPhone(enterpriseId int, phones []string) (account *[]entities.Account, err error) {
+	err = datastore.DB.Where("enterprise_id", enterpriseId).
+		Where("phone IN ?", phones).Find(&account).Error
 	return
 }
 

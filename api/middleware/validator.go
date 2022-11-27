@@ -11,7 +11,7 @@ var Validator *validator.Validate
 
 func validate(i interface{}) error {
 	if err := Validator.Struct(i); err != nil {
-
+		fmt.Println(err)
 		var validationErrors []utils.ValidationError
 
 		for _, err := range err.(validator.ValidationErrors) {
