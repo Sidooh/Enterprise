@@ -11,7 +11,7 @@ import (
 type Service interface {
 	// TODO: Naming convention, determine which to use
 
-	CreateVoucherType(enterpriseId int, name string) (*clients.VoucherType, error)
+	CreateVoucherType(accountId int, name string) (*clients.VoucherType, error)
 	FetchVoucherTypesForEnterprise(enterpriseId int) (*[]clients.VoucherType, error)
 	GetVoucherTypeForEnterprise(enterpriseId, id int) (*clients.VoucherType, error)
 	DisburseVoucherType(enterprise entities.Enterprise, voucherTypeId, accountId, amount int) (*clients.VoucherType, error)
@@ -22,8 +22,8 @@ type service struct {
 	paymentsApi       *clients.ApiClient
 }
 
-func (s *service) CreateVoucherType(enterpriseId int, name string) (*clients.VoucherType, error) {
-	response, err := s.paymentsApi.CreateVoucherType(enterpriseId, name)
+func (s *service) CreateVoucherType(accountId int, name string) (*clients.VoucherType, error) {
+	response, err := s.paymentsApi.CreateVoucherType(accountId, name)
 	if err != nil {
 		return nil, pkg.ErrServerError
 	}
