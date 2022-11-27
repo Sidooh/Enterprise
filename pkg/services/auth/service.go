@@ -90,7 +90,6 @@ func (s *service) Register(data presenter.Registration) (*presenter.EnterpriseWi
 	_ = datastore.Permify.AddRolesToUser(user.Id, "ADMIN")
 
 	// 4. Create Float account
-	// TODO: Refactor to payments client
 	updatedEnterprise := enterprise
 
 	floatAccount, err := s.paymentsApi.CreateFloatAccount(int(enterprise.Id), account.Id)

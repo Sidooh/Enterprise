@@ -40,5 +40,5 @@ func CheckOTP(key string, otp int) bool {
 }
 
 func SetOTP(key string, otp int) {
-	cache.Cache.Set(fmt.Sprintf("otp_%s", key), otp, 5*time.Minute)
+	cache.Cache.Set(fmt.Sprintf("otp_%s", key), otp, 2*time.Minute)
 }

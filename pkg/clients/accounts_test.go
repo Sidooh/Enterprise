@@ -59,20 +59,6 @@ func accountNotFoundRequest() RoundTripFunc {
 	}
 }
 
-//func TestApiClient_GetOrCreateAccount(t *testing.T) {
-//	client.baseUrl = "http://localhost:8000"
-//	viper.Set("SIDOOH_ACCOUNTS_API_URL", client.baseUrl)
-//
-//	initTestClient(accountFoundRequest(t))
-//
-//	account, err := GetAccountClient().GetOrCreateAccount("")
-//	fmt.Println(account, err)
-//	if err != nil {
-//		return
-//	}
-//
-//}
-
 func TestApiClient_CreateAccount(t *testing.T) {
 	InitAccountClient()
 	api := GetAccountClient()
@@ -96,7 +82,6 @@ func TestApiClient_CreateAccount(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			t.Parallel()
 			api.client = &http.Client{Transport: tt.apiMock}
 			got, err := api.CreateAccount(tt.args.phone)
 			if !tt.wantErr(t, err, fmt.Sprintf("CreateAccount(%v)", tt.args.phone)) {
@@ -130,7 +115,7 @@ func TestApiClient_GetAccount(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			t.Parallel()
+			// TODO: Removed t.Parallel cause of race condition, confirm where race cond is found
 			api.client = &http.Client{Transport: tt.apiMock}
 			got, err := api.GetAccount(tt.args.phone)
 			if !tt.wantErr(t, err, fmt.Sprintf("GetAccount(%v)", tt.args.phone)) {
@@ -140,40 +125,3 @@ func TestApiClient_GetAccount(t *testing.T) {
 		})
 	}
 }
-
-//
-//func TestApiClient_GetOrCreateAccount1(t *testing.T) {
-//	type fields struct {
-//		client  *http.Client
-//		request *http.Request
-//		baseUrl string
-//		cache   cache.ICache
-//	}
-//	type args struct {
-//		phone string
-//	}
-//	tests := []struct {
-//		name    string
-//		fields  fields
-//		args    args
-//		want    *Account
-//		wantErr assert.ErrorAssertionFunc
-//	}{
-//		// TODO: Add test cases.
-//	}
-//	for _, tt := range tests {
-//		t.Run(tt.name, func(t *testing.T) {
-//			api := &ApiClient{
-//				client:  tt.fields.client,
-//				request: tt.fields.request,
-//				baseUrl: tt.fields.baseUrl,
-//				cache:   tt.fields.cache,
-//			}
-//			got, err := api.GetOrCreateAccount(tt.args.phone)
-//			if !tt.wantErr(t, err, fmt.Sprintf("GetOrCreateAccount(%v)", tt.args.phone)) {
-//				return
-//			}
-//			assert.Equalf(t, tt.want, got, "GetOrCreateAccount(%v)", tt.args.phone)
-//		})
-//	}
-//}
