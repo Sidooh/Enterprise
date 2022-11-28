@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"github.com/spf13/viper"
 	"net/http"
-	"strings"
 )
 
 var notifyClient *ApiClient
@@ -31,7 +30,7 @@ func (api *ApiClient) SendNotification(channel, event, destination, message stri
 	var apiResponse = new(ApiResponse)
 
 	jsonData, err := json.Marshal(map[string]interface{}{
-		"channel":     strings.ToUpper(channel),
+		"channel":     channel,
 		"destination": []string{destination},
 		"event_type":  event,
 		"content":     message,
