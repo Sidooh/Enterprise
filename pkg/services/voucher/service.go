@@ -12,7 +12,7 @@ type Service interface {
 	// TODO: Naming convention, determine which to use
 
 	CreateVoucherType(accountId int, name string) (*clients.VoucherType, error)
-	FetchVoucherTypesForEnterprise(enterpriseId int) (*[]clients.VoucherType, error)
+	FetchVoucherTypesForEnterprise(accountId int) (*[]clients.VoucherType, error)
 	GetVoucherTypeForEnterprise(enterpriseId, id int) (*clients.VoucherType, error)
 	DisburseVoucherType(enterprise entities.Enterprise, voucherTypeId, accountId, amount int) (*clients.VoucherType, error)
 }
@@ -31,8 +31,8 @@ func (s *service) CreateVoucherType(accountId int, name string) (*clients.Vouche
 	return response, nil
 }
 
-func (s *service) FetchVoucherTypesForEnterprise(enterpriseId int) (*[]clients.VoucherType, error) {
-	response, err := s.paymentsApi.FetchVoucherTypes(enterpriseId)
+func (s *service) FetchVoucherTypesForEnterprise(accountId int) (*[]clients.VoucherType, error) {
+	response, err := s.paymentsApi.FetchVoucherTypes(accountId)
 	if err != nil {
 		return nil, pkg.ErrServerError
 	}

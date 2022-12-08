@@ -54,8 +54,8 @@ func GetVoucherTypes(service voucher.Service) fiber.Handler {
 		/*if utils.IsSuperAdmin(ctx) {
 			fetched, err = service.FetchVoucherTypes()
 		} else*/if utils.IsAdmin(ctx) {
-			enterpriseId := utils.GetEnterpriseId(ctx)
-			fetched, err = service.FetchVoucherTypesForEnterprise(enterpriseId)
+			enterprise := utils.GetEnterprise(ctx)
+			fetched, err = service.FetchVoucherTypesForEnterprise(int(enterprise.AccountId))
 		} else {
 			return utils.HandleUnauthorized(ctx)
 		}
