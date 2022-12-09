@@ -95,7 +95,7 @@ func (api *ApiClient) FetchFloatAccount(accountId int) (*FloatAccount, error) {
 func (api *ApiClient) FetchFloatAccountTransactions(accountId int) (*[]FloatAccountTransaction, error) {
 	var apiResponse = new(FloatAccountTransactionsApiResponse)
 
-	var endpoint = "/float-accounts/" + strconv.Itoa(accountId) + "/transactions"
+	var endpoint = "/float-account-transactions?float_account_id=" + strconv.Itoa(accountId)
 	err := api.NewRequest(http.MethodGet, endpoint, nil).Send(apiResponse)
 
 	return apiResponse.Data, err
