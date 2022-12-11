@@ -7,6 +7,7 @@ import (
 )
 
 type Service interface {
+	GetRecentVoucherTransactionsForEnterprise(enterprise entities.Enterprise, limit int) (*[]clients.VoucherTransaction, error)
 	GetRecentFloatAccountTransactionsForEnterprise(enterprise entities.Enterprise, limit int) (*[]clients.FloatAccountTransaction, error)
 	GetDashboardStatistics(enterprise entities.Enterprise) (*clients.DashboardStatistics, error)
 }
@@ -14,15 +15,6 @@ type Service interface {
 type service struct {
 	paymentsApi *clients.ApiClient
 	repository  Repository
-}
-
-func (s *service) GetRecentFloatAccountTransactionsForEnterprise(enterprise entities.Enterprise, limit int) (*[]clients.FloatAccountTransaction, error) {
-	response, err := s.paymentsApi.FetchFloatAccountTransactions(int(enterprise.FloatAccountId), limit)
-	if err != nil {
-		return nil, pkg.ErrServerError
-	}
-
-	return response, nil
 }
 
 func (s *service) GetDashboardStatistics(enterprise entities.Enterprise) (*clients.DashboardStatistics, error) {
@@ -38,6 +30,24 @@ func (s *service) GetDashboardStatistics(enterprise entities.Enterprise) (*clien
 	}
 
 	return result, nil
+}
+
+func (s *service) GetRecentVoucherTransactionsForEnterprise(enterprise entities.Enterprise, limit int) (*[]clients.VoucherTransaction, error) {
+	response, err := s.paymentsApi.FetchVoucherTransactions(int(enterprise.AccountId), limit)
+	if err != nil {
+		return nil, pkg.ErrServerError
+	}
+
+	return response, nil
+}
+
+func (s *service) GetRecentFloatAccountTransactionsForEnterprise(enterprise entities.Enterprise, limit int) (*[]clients.FloatAccountTransaction, error) {
+	response, err := s.paymentsApi.FetchFloatAccountTransactions(int(enterprise.FloatAccountId), limit)
+	if err != nil {
+		return nil, pkg.ErrServerError
+	}
+
+	return response, nil
 }
 
 func NewService(r Repository) Service {

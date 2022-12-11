@@ -8,6 +8,6 @@ import (
 
 func DashboardRouter(app fiber.Router, service dashboard.Service) {
 	app.Get("/dashboard/statistics", handlers.GetStatistics(service))
-	app.Get("/dashboard/recent-voucher-transactions", handlers.GetRecentFloatTransactionsForEnterprise(service))
+	app.Get("/dashboard/recent-voucher-transactions", handlers.GetRecentVoucherTransactionsForEnterprise(service))
 	app.Get("/dashboard/recent-float-transactions", handlers.GetRecentFloatTransactionsForEnterprise(service))
 }

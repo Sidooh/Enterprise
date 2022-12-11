@@ -34,6 +34,11 @@ type VoucherApiResponse struct {
 	Data *Voucher `json:"data"`
 }
 
+type VoucherTransactionsApiResponse struct {
+	ApiResponse
+	Data *[]VoucherTransaction `json:"data"`
+}
+
 type FloatAccountApiResponse struct {
 	ApiResponse
 	Data *FloatAccount `json:"data"`
@@ -164,17 +169,29 @@ func (api *ApiClient) DisburseVoucher(accountId, floatAccountId, voucherId, amou
 	return apiResponse.Data.(*VoucherType), err
 }
 
-func (api *ApiClient) CreateVoucher(enterpriseAccountId, accountId, voucherTypeId int) (*Voucher, error) {
+func (api *ApiClient) CreateVoucher(enterpriseAccountId, voucherTypeId int) (*Voucher, error) {
 	var apiResponse = new(VoucherApiResponse)
 
 	jsonData, err := json.Marshal(map[string]interface{}{
-		"account_id":         enterpriseAccountId,
-		"voucher_account_id": accountId,
-		"voucher_type_id":    voucherTypeId,
+		"account_id":      enterpriseAccountId,
+		"voucher_type_id": voucherTypeId,
 	})
 	dataBytes := bytes.NewBuffer(jsonData)
 
 	err = api.NewRequest(http.MethodPost, "/vouchers", dataBytes).Send(apiResponse)
+
+	return apiResponse.Data, err
+}
+
+func (api *ApiClient) FetchVoucherTransactions(accountId int, limit int) (*[]VoucherTransaction, error) {
+	var apiResponse = new(VoucherTransactionsApiResponse)
+
+	var endpoint = "/voucher-transactions?account_id=" + strconv.Itoa(accountId)
+	if limit != 0 {
+		endpoint += "&limit=" + strconv.Itoa(limit)
+	}
+
+	err := api.NewRequest(http.MethodGet, endpoint, nil).Send(apiResponse)
 
 	return apiResponse.Data, err
 }

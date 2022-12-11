@@ -67,7 +67,7 @@ func (s *service) DisburseVoucherType(enterprise entities.Enterprise, voucherTyp
 	var voucherId int
 
 	if index < 0 {
-		voucher, err := s.paymentsApi.CreateVoucher(int(enterprise.AccountId), accountId, voucherTypeId)
+		voucher, err := s.paymentsApi.CreateVoucher(int(account.AccountId), voucherTypeId)
 		if err != nil {
 			return nil, err
 		}
@@ -76,7 +76,7 @@ func (s *service) DisburseVoucherType(enterprise entities.Enterprise, voucherTyp
 		voucherId = voucherType.Vouchers[index].Id
 	}
 
-	response, err := s.paymentsApi.DisburseVoucher(int(enterprise.Id), int(enterprise.FloatAccountId), voucherId, amount)
+	response, err := s.paymentsApi.DisburseVoucher(int(account.AccountId), int(enterprise.FloatAccountId), voucherId, amount)
 	if err != nil {
 		return nil, pkg.ErrServerError
 	}

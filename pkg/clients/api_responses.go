@@ -36,6 +36,16 @@ type VoucherType struct {
 	Vouchers    []Voucher   `json:"vouchers,omitempty"`
 }
 
+type VoucherTransaction struct {
+	Id          int       `json:"id"`
+	Type        string    `json:"type"`
+	Amount      int       `json:"amount"`
+	Description string    `json:"description"`
+	VoucherId   int       `json:"voucher_id"`
+	CreatedAt   time.Time `json:"created_at"`
+	Voucher     Voucher   `json:"voucher,omitempty"`
+}
+
 type Voucher struct {
 	Id        int `json:"id"`
 	AccountId int `json:"account_id"`
