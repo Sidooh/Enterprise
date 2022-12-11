@@ -125,7 +125,7 @@ func (api *ApiClient) FetchVoucherTypes(accountId int) (*[]VoucherType, error) {
 func (api *ApiClient) FetchVoucherType(accountId, voucherTypeId int) (*VoucherType, error) {
 	var apiResponse = new(VoucherTypeApiResponse)
 
-	var endpoint = "/voucher-types/" + strconv.Itoa(voucherTypeId) + "?account_id=" + strconv.Itoa(accountId) + "&with_vouchers=true"
+	var endpoint = "/voucher-types/" + strconv.Itoa(voucherTypeId) + "?account_id=" + strconv.Itoa(accountId) + "&with=vouchers"
 	err := api.NewRequest(http.MethodGet, endpoint, nil).Send(apiResponse)
 
 	return apiResponse.Data, err
