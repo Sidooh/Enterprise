@@ -92,10 +92,14 @@ func (api *ApiClient) FetchFloatAccount(accountId int) (*FloatAccount, error) {
 	return apiResponse.Data, err
 }
 
-func (api *ApiClient) FetchFloatAccountTransactions(accountId int) (*[]FloatAccountTransaction, error) {
+func (api *ApiClient) FetchFloatAccountTransactions(accountId int, limit int) (*[]FloatAccountTransaction, error) {
 	var apiResponse = new(FloatAccountTransactionsApiResponse)
 
 	var endpoint = "/float-account-transactions?float_account_id=" + strconv.Itoa(accountId)
+	if limit != 0 {
+		endpoint += "&limit=" + strconv.Itoa(limit)
+	}
+
 	err := api.NewRequest(http.MethodGet, endpoint, nil).Send(apiResponse)
 
 	return apiResponse.Data, err

@@ -28,7 +28,7 @@ func (s *service) GetFloatAccountForEnterprise(enterprise entities.Enterprise) (
 }
 
 func (s *service) GetFloatAccountTransactionsForEnterprise(enterprise entities.Enterprise) (*[]clients.FloatAccountTransaction, error) {
-	response, err := s.paymentsApi.FetchFloatAccountTransactions(int(enterprise.FloatAccountId))
+	response, err := s.paymentsApi.FetchFloatAccountTransactions(int(enterprise.FloatAccountId), 0)
 	if err != nil {
 		return nil, pkg.ErrServerError
 	}

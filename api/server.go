@@ -8,6 +8,7 @@ import (
 	"enterprise.sidooh/pkg/logger"
 	"enterprise.sidooh/pkg/services/account"
 	"enterprise.sidooh/pkg/services/auth"
+	"enterprise.sidooh/pkg/services/dashboard"
 	"enterprise.sidooh/pkg/services/enterprise"
 	"enterprise.sidooh/pkg/services/float"
 	"enterprise.sidooh/pkg/services/team"
@@ -45,13 +46,20 @@ func setMiddleware(app *fiber.App) {
 
 	app.Use(helmet.New())
 	app.Use(cors.New())
-	app.Use(limiter.New())
+
+	rateLimit := viper.GetInt("RATE_LIMIT")
+	if rateLimit == 0 {
+		rateLimit = 10
+	}
+	app.Use(limiter.New(limiter.Config{Max: rateLimit}))
 	app.Use(recover.New())
 	app.Use(fiberLogger.New(fiberLogger.Config{Output: utils.GetLogFile("stats.log")}))
 
-	app.Use(favicon.New(favicon.Config{Next: func(c *fiber.Ctx) bool {
-		return true
-	}}))
+	app.Use(favicon.New(favicon.Config{
+		Next: func(c *fiber.Ctx) bool {
+			return true
+		},
+	}))
 
 	middleware.Validator = validator.New()
 
@@ -90,6 +98,9 @@ func setHandlers(app *fiber.App) {
 	voucherSrv := voucher.NewService()
 	floatSrv := float.NewService(enterpriseRep)
 
+	dashboardRep := dashboard.NewRepo()
+	dashboardSrv := dashboard.NewService(dashboardRep)
+
 	routes.AuthRouter(v1, authSrv)
 
 	app.Use(jwt.New(jwt.Config{
@@ -103,6 +114,7 @@ func setHandlers(app *fiber.App) {
 	routes.TeamRouter(v1, teamSrv)
 	routes.VoucherRouter(v1, voucherSrv)
 	routes.FloatRouter(v1, floatSrv)
+	routes.DashboardRouter(v1, dashboardSrv)
 }
 
 func Server() *fiber.App {

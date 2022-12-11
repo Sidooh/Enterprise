@@ -41,3 +41,9 @@ type Voucher struct {
 	AccountId int `json:"account_id"`
 	Balance   int `json:"balance"`
 }
+
+type DashboardStatistics struct {
+	FloatBalance      int `json:"float_balance"`
+	AccountsCount     int `json:"accounts_count"`
+	VouchersDisbursed int `json:"vouchers_disbursed"`
+}
