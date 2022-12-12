@@ -54,8 +54,8 @@ func GetVoucherTypes(service voucher.Service) fiber.Handler {
 		/*if utils.IsSuperAdmin(ctx) {
 			fetched, err = service.FetchVoucherTypes()
 		} else*/if utils.IsAdmin(ctx) {
-			enterpriseId := utils.GetEnterpriseId(ctx)
-			fetched, err = service.FetchVoucherTypesForEnterprise(enterpriseId)
+			accountId := utils.GetEnterpriseAccountId(ctx)
+			fetched, err = service.FetchVoucherTypesForEnterprise(accountId)
 		} else {
 			return utils.HandleUnauthorized(ctx)
 		}
@@ -80,8 +80,8 @@ func CreateVoucherType(service voucher.Service) fiber.Handler {
 
 		// TODO: Use permissions for this part - determine who can add voucherTypes
 		if utils.IsAdmin(ctx) {
-			enterpriseId := utils.GetEnterpriseId(ctx)
-			fetched, err = service.CreateVoucherType(enterpriseId, request.Name)
+			accountId := utils.GetEnterpriseAccountId(ctx)
+			fetched, err = service.CreateVoucherType(accountId, request.Name)
 		} else {
 			return utils.HandleUnauthorized(ctx)
 		}

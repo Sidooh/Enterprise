@@ -34,6 +34,11 @@ type VoucherApiResponse struct {
 	Data *Voucher `json:"data"`
 }
 
+type VoucherTransactionsApiResponse struct {
+	ApiResponse
+	Data *[]VoucherTransaction `json:"data"`
+}
+
 type FloatAccountApiResponse struct {
 	ApiResponse
 	Data *FloatAccount `json:"data"`
@@ -92,10 +97,14 @@ func (api *ApiClient) FetchFloatAccount(accountId int) (*FloatAccount, error) {
 	return apiResponse.Data, err
 }
 
-func (api *ApiClient) FetchFloatAccountTransactions(accountId int) (*[]FloatAccountTransaction, error) {
+func (api *ApiClient) FetchFloatAccountTransactions(accountId int, limit int) (*[]FloatAccountTransaction, error) {
 	var apiResponse = new(FloatAccountTransactionsApiResponse)
 
-	var endpoint = "/float-accounts/" + strconv.Itoa(accountId) + "/transactions"
+	var endpoint = "/float-account-transactions?float_account_id=" + strconv.Itoa(accountId)
+	if limit > 0 {
+		endpoint += "&limit=" + strconv.Itoa(limit)
+	}
+
 	err := api.NewRequest(http.MethodGet, endpoint, nil).Send(apiResponse)
 
 	return apiResponse.Data, err
@@ -116,14 +125,14 @@ func (api *ApiClient) FetchVoucherTypes(accountId int) (*[]VoucherType, error) {
 func (api *ApiClient) FetchVoucherType(accountId, voucherTypeId int) (*VoucherType, error) {
 	var apiResponse = new(VoucherTypeApiResponse)
 
-	var endpoint = "/voucher-types/" + strconv.Itoa(voucherTypeId) + "?account_id=" + strconv.Itoa(accountId) + "&with_vouchers=true"
+	var endpoint = "/voucher-types/" + strconv.Itoa(voucherTypeId) + "?account_id=" + strconv.Itoa(accountId) + "&with=vouchers"
 	err := api.NewRequest(http.MethodGet, endpoint, nil).Send(apiResponse)
 
 	return apiResponse.Data, err
 }
 
 func (api *ApiClient) CreateVoucherType(accountId int, name string) (*VoucherType, error) {
-	var apiResponse = new(ApiResponse)
+	var apiResponse = new(VoucherTypeApiResponse)
 
 	jsonData, err := json.Marshal(map[string]string{
 		"initiator":  "ENTERPRISE",
@@ -134,7 +143,7 @@ func (api *ApiClient) CreateVoucherType(accountId int, name string) (*VoucherTyp
 
 	err = api.NewRequest(http.MethodPost, "/voucher-types", dataBytes).Send(apiResponse)
 
-	return apiResponse.Data.(*VoucherType), err
+	return apiResponse.Data, err
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -160,17 +169,29 @@ func (api *ApiClient) DisburseVoucher(accountId, floatAccountId, voucherId, amou
 	return apiResponse.Data.(*VoucherType), err
 }
 
-func (api *ApiClient) CreateVoucher(enterpriseAccountId, accountId, voucherTypeId int) (*Voucher, error) {
+func (api *ApiClient) CreateVoucher(enterpriseAccountId, voucherTypeId int) (*Voucher, error) {
 	var apiResponse = new(VoucherApiResponse)
 
 	jsonData, err := json.Marshal(map[string]interface{}{
-		"account_id":         enterpriseAccountId,
-		"voucher_account_id": accountId,
-		"voucher_type_id":    voucherTypeId,
+		"account_id":      enterpriseAccountId,
+		"voucher_type_id": voucherTypeId,
 	})
 	dataBytes := bytes.NewBuffer(jsonData)
 
 	err = api.NewRequest(http.MethodPost, "/vouchers", dataBytes).Send(apiResponse)
+
+	return apiResponse.Data, err
+}
+
+func (api *ApiClient) FetchVoucherTransactions(accountId int, limit int) (*[]VoucherTransaction, error) {
+	var apiResponse = new(VoucherTransactionsApiResponse)
+
+	var endpoint = "/voucher-transactions?account_id=" + strconv.Itoa(accountId)
+	if limit > 0 {
+		endpoint += "&limit=" + strconv.Itoa(limit)
+	}
+
+	err := api.NewRequest(http.MethodGet, endpoint, nil).Send(apiResponse)
 
 	return apiResponse.Data, err
 }

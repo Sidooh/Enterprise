@@ -12,5 +12,4 @@ func AccountRouter(app fiber.Router, service account.Service) {
 	app.Get("/accounts/:id", handlers.GetAccount(service))
 
 	app.Post("/accounts/bulk", handlers.CreateBulkAccounts(service))
-
 }

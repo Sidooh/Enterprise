@@ -37,3 +37,7 @@ func GetEnterprise(ctx *fiber.Ctx) entities.Enterprise {
 func GetEnterpriseId(ctx *fiber.Ctx) int {
 	return int(GetUser(ctx).EnterpriseId)
 }
+
+func GetEnterpriseAccountId(ctx *fiber.Ctx) int {
+	return int(GetUser(ctx).Enterprise.AccountId)
+}

@@ -11,8 +11,8 @@ import (
 type Service interface {
 	// TODO: Naming convention, determine which to use
 
-	CreateVoucherType(enterpriseId int, name string) (*clients.VoucherType, error)
-	FetchVoucherTypesForEnterprise(enterpriseId int) (*[]clients.VoucherType, error)
+	CreateVoucherType(accountId int, name string) (*clients.VoucherType, error)
+	FetchVoucherTypesForEnterprise(accountId int) (*[]clients.VoucherType, error)
 	GetVoucherTypeForEnterprise(enterpriseId, id int) (*clients.VoucherType, error)
 	DisburseVoucherType(enterprise entities.Enterprise, voucherTypeId, accountId, amount int) (*clients.VoucherType, error)
 }
@@ -22,8 +22,8 @@ type service struct {
 	paymentsApi       *clients.ApiClient
 }
 
-func (s *service) CreateVoucherType(enterpriseId int, name string) (*clients.VoucherType, error) {
-	response, err := s.paymentsApi.CreateVoucherType(enterpriseId, name)
+func (s *service) CreateVoucherType(accountId int, name string) (*clients.VoucherType, error) {
+	response, err := s.paymentsApi.CreateVoucherType(accountId, name)
 	if err != nil {
 		return nil, pkg.ErrServerError
 	}
@@ -31,8 +31,8 @@ func (s *service) CreateVoucherType(enterpriseId int, name string) (*clients.Vou
 	return response, nil
 }
 
-func (s *service) FetchVoucherTypesForEnterprise(enterpriseId int) (*[]clients.VoucherType, error) {
-	response, err := s.paymentsApi.FetchVoucherTypes(enterpriseId)
+func (s *service) FetchVoucherTypesForEnterprise(accountId int) (*[]clients.VoucherType, error) {
+	response, err := s.paymentsApi.FetchVoucherTypes(accountId)
 	if err != nil {
 		return nil, pkg.ErrServerError
 	}
@@ -67,7 +67,7 @@ func (s *service) DisburseVoucherType(enterprise entities.Enterprise, voucherTyp
 	var voucherId int
 
 	if index < 0 {
-		voucher, err := s.paymentsApi.CreateVoucher(int(enterprise.AccountId), accountId, voucherTypeId)
+		voucher, err := s.paymentsApi.CreateVoucher(int(account.AccountId), voucherTypeId)
 		if err != nil {
 			return nil, err
 		}
@@ -76,7 +76,7 @@ func (s *service) DisburseVoucherType(enterprise entities.Enterprise, voucherTyp
 		voucherId = voucherType.Vouchers[index].Id
 	}
 
-	response, err := s.paymentsApi.DisburseVoucher(int(enterprise.Id), int(enterprise.FloatAccountId), voucherId, amount)
+	response, err := s.paymentsApi.DisburseVoucher(int(account.AccountId), int(enterprise.FloatAccountId), voucherId, amount)
 	if err != nil {
 		return nil, pkg.ErrServerError
 	}

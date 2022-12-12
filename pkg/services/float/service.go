@@ -5,6 +5,7 @@ import (
 	"enterprise.sidooh/pkg/clients"
 	"enterprise.sidooh/pkg/entities"
 	"enterprise.sidooh/pkg/services/enterprise"
+	"enterprise.sidooh/utils"
 )
 
 type Service interface {
@@ -28,7 +29,7 @@ func (s *service) GetFloatAccountForEnterprise(enterprise entities.Enterprise) (
 }
 
 func (s *service) GetFloatAccountTransactionsForEnterprise(enterprise entities.Enterprise) (*[]clients.FloatAccountTransaction, error) {
-	response, err := s.paymentsApi.FetchFloatAccountTransactions(int(enterprise.FloatAccountId))
+	response, err := s.paymentsApi.FetchFloatAccountTransactions(int(enterprise.FloatAccountId), utils.FLOAT_TRANSACTIONS_LIMIT)
 	if err != nil {
 		return nil, pkg.ErrServerError
 	}
