@@ -47,11 +47,7 @@ func setMiddleware(app *fiber.App) {
 	app.Use(helmet.New())
 	app.Use(cors.New())
 
-	rateLimit := viper.GetInt("RATE_LIMIT")
-	if rateLimit == 0 {
-		rateLimit = 10
-	}
-	app.Use(limiter.New(limiter.Config{Max: rateLimit}))
+	app.Use(limiter.New(limiter.Config{Max: viper.GetInt("RATE_LIMIT")}))
 	app.Use(recover.New())
 	app.Use(fiberLogger.New(fiberLogger.Config{Output: utils.GetLogFile("stats.log")}))
 

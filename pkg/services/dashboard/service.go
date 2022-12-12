@@ -7,7 +7,7 @@ import (
 )
 
 type Service interface {
-	GetRecentVoucherTransactionsForEnterprise(enterprise entities.Enterprise, limit int) (*[]clients.VoucherTransaction, error)
+	GetRecentVoucherTransactionsForEnterprise(accountId int, limit int) (*[]clients.VoucherTransaction, error)
 	GetRecentFloatAccountTransactionsForEnterprise(enterprise entities.Enterprise, limit int) (*[]clients.FloatAccountTransaction, error)
 	GetDashboardStatistics(enterprise entities.Enterprise) (*clients.DashboardStatistics, error)
 }
@@ -23,6 +23,7 @@ func (s *service) GetDashboardStatistics(enterprise entities.Enterprise) (*clien
 		return nil, pkg.ErrServerError
 	}
 
+	//	TODO: Implement vouchers disbursed logic
 	result := &clients.DashboardStatistics{
 		FloatBalance:      response.Balance,
 		AccountsCount:     int(s.repository.CountAccounts()),
@@ -32,8 +33,8 @@ func (s *service) GetDashboardStatistics(enterprise entities.Enterprise) (*clien
 	return result, nil
 }
 
-func (s *service) GetRecentVoucherTransactionsForEnterprise(enterprise entities.Enterprise, limit int) (*[]clients.VoucherTransaction, error) {
-	response, err := s.paymentsApi.FetchVoucherTransactions(int(enterprise.AccountId), limit)
+func (s *service) GetRecentVoucherTransactionsForEnterprise(accountId int, limit int) (*[]clients.VoucherTransaction, error) {
+	response, err := s.paymentsApi.FetchVoucherTransactions(accountId, limit)
 	if err != nil {
 		return nil, pkg.ErrServerError
 	}

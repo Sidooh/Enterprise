@@ -35,12 +35,12 @@ func GetRecentVoucherTransactionsForEnterprise(service dashboard.Service) fiber.
 
 		limit, err := strconv.ParseInt(ctx.Query("limit"), 0, 8)
 		if err != nil {
-			return utils.HandleErrorResponse(ctx, err)
+			limit = 0
 		}
 
 		if utils.IsAdmin(ctx) {
-			enterprise := utils.GetEnterprise(ctx)
-			fetched, err = service.GetRecentVoucherTransactionsForEnterprise(enterprise, int(limit))
+			accountId := utils.GetEnterpriseAccountId(ctx)
+			fetched, err = service.GetRecentVoucherTransactionsForEnterprise(accountId, int(limit))
 		} else {
 			return utils.HandleUnauthorized(ctx)
 		}
@@ -61,7 +61,6 @@ func GetRecentFloatTransactionsForEnterprise(service dashboard.Service) fiber.Ha
 		limit, err := strconv.ParseInt(ctx.Query("limit"), 0, 8)
 		if err != nil {
 			limit = 0
-			//return utils.HandleErrorResponse(ctx, err)
 		}
 
 		if utils.IsAdmin(ctx) {

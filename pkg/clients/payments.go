@@ -101,7 +101,7 @@ func (api *ApiClient) FetchFloatAccountTransactions(accountId int, limit int) (*
 	var apiResponse = new(FloatAccountTransactionsApiResponse)
 
 	var endpoint = "/float-account-transactions?float_account_id=" + strconv.Itoa(accountId)
-	if limit != 0 {
+	if limit > 0 {
 		endpoint += "&limit=" + strconv.Itoa(limit)
 	}
 
@@ -187,7 +187,7 @@ func (api *ApiClient) FetchVoucherTransactions(accountId int, limit int) (*[]Vou
 	var apiResponse = new(VoucherTransactionsApiResponse)
 
 	var endpoint = "/voucher-transactions?account_id=" + strconv.Itoa(accountId)
-	if limit != 0 {
+	if limit > 0 {
 		endpoint += "&limit=" + strconv.Itoa(limit)
 	}
 
