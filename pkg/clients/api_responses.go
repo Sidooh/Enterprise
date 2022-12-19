@@ -8,6 +8,12 @@ type Account struct {
 	Active bool   `json:"active"`
 }
 
+type Payment struct {
+	Id     int    `json:"id"`
+	Amount string `json:"amount"`
+	Status string `json:"status"`
+}
+
 type FloatAccount struct {
 	Id            int    `json:"id"`
 	Balance       int    `json:"balance"`

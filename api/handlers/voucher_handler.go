@@ -107,7 +107,7 @@ func DisburseVoucherType(service voucher.Service) fiber.Handler {
 			return ctx.Status(http.StatusUnprocessableEntity).JSON(err)
 		}
 
-		fetched := new(clients.VoucherType)
+		fetched := new(clients.Payment)
 
 		// TODO: Use permissions for this part - determine who can add voucherTypes
 		if utils.IsAdmin(ctx) {
