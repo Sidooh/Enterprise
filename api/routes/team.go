@@ -10,4 +10,5 @@ func TeamRouter(app fiber.Router, service team.Service) {
 	app.Get("/teams", handlers.GetTeams(service))
 	app.Post("/teams", handlers.CreateTeam(service))
 	app.Get("/teams/:id", handlers.GetTeam(service))
+	app.Post("/teams/:id/accounts", handlers.CreateTeamAccount(service))
 }

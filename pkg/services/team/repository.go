@@ -6,11 +6,12 @@ import (
 	"fmt"
 )
 
-//Repository interface allows us to access the CRUD Operations here.
+// Repository interface allows us to access the CRUD Operations here.
 type Repository interface {
 	ReadTeams() (*[]entities.Team, error)
 	ReadTeam(id int) (*entities.Team, error)
 	CreateTeam(team *entities.Team) (*entities.Team, error)
+	AddTeamAccount(team *entities.Team, accountId uint) error
 	//UpdateTeam(team *entities.Team, column string, value interface{}) (*entities.Team, error)
 	//DeleteTeam(Id uint) error
 
@@ -23,6 +24,12 @@ type repository struct {
 func (r *repository) CreateTeam(team *entities.Team) (t *entities.Team, err error) {
 	err = datastore.DB.Create(&team).Error
 	return team, err
+}
+
+func (r *repository) AddTeamAccount(team *entities.Team, accountId uint) error {
+	return datastore.DB.Model(&team).Association("Accounts").Append(&entities.Account{
+		ModelID: entities.ModelID{Id: accountId},
+	})
 }
 
 func (r *repository) ReadTeams() (teams *[]entities.Team, err error) {
@@ -60,7 +67,7 @@ func (r *repository) ReadEnterpriseTeamByName(enterpriseId int, name string) (te
 	return
 }
 
-//NewRepo is the single instance repo that is being created.
+// NewRepo is the single instance repo that is being created.
 func NewRepo() Repository {
 	return &repository{}
 }
