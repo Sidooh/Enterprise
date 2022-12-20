@@ -6,7 +6,7 @@ import (
 	"fmt"
 )
 
-//Repository interface allows us to access the CRUD Operations here.
+// Repository interface allows us to access the CRUD Operations here.
 type Repository interface {
 	ReadAccounts() (*[]entities.Account, error)
 	ReadAccount(id int) (*entities.Account, error)
@@ -31,7 +31,7 @@ func (r *repository) ReadAccounts() (accounts *[]entities.Account, err error) {
 }
 
 func (r *repository) ReadAccount(id int) (account *entities.Account, err error) {
-	err = datastore.DB.First(&account, id).Error
+	err = datastore.DB.Preload("Teams").First(&account, id).Error
 	return
 }
 
@@ -50,7 +50,7 @@ func (r *repository) ReadEnterpriseAccounts(enterpriseId int) (accounts *[]entit
 }
 
 func (r *repository) ReadEnterpriseAccount(enterpriseId int, id int) (account *entities.Account, err error) {
-	err = datastore.DB.Where("enterprise_id", enterpriseId).First(&account, id).Error
+	err = datastore.DB.Preload("Teams").Where("enterprise_id", enterpriseId).First(&account, id).Error
 	return
 }
 
@@ -77,7 +77,7 @@ func (r *repository) ReadEnterpriseAccountsByPhone(enterpriseId int, phones []st
 	return
 }
 
-//NewRepo is the single instance repo that is being created.
+// NewRepo is the single instance repo that is being created.
 func NewRepo() Repository {
 	return &repository{}
 }

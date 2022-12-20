@@ -1,6 +1,7 @@
 package account
 
 import (
+	"enterprise.sidooh/api/presenter"
 	"enterprise.sidooh/pkg"
 	"enterprise.sidooh/pkg/clients"
 	"enterprise.sidooh/pkg/entities"
@@ -9,16 +10,17 @@ import (
 
 type Service interface {
 	FetchAccounts() (*[]entities.Account, error)
-	GetAccount(id int) (*entities.Account, error)
+	GetAccount(id int) (*presenter.Account, error)
 	CreateAccount(account *entities.Account) (*entities.Account, error)
 
 	FetchAccountsForEnterprise(enterpriseId int) (*[]entities.Account, error)
-	GetAccountForEnterprise(enterpriseId int, id int) (*entities.Account, error)
+	GetAccountForEnterprise(enterpriseId int, id int) (*presenter.Account, error)
 	CreateBulkAccounts(accounts []entities.Account) (*[]entities.Account, map[string]string)
 }
 
 type service struct {
 	accountsApi       *clients.ApiClient
+	paymentsApi       *clients.ApiClient
 	accountRepository Repository
 }
 
@@ -26,8 +28,21 @@ func (s *service) FetchAccounts() (*[]entities.Account, error) {
 	return s.accountRepository.ReadAccounts()
 }
 
-func (s *service) GetAccount(id int) (*entities.Account, error) {
-	return s.accountRepository.ReadAccount(id)
+func (s *service) GetAccount(id int) (*presenter.Account, error) {
+	account, err := s.accountRepository.ReadAccount(id)
+
+	response, err := s.paymentsApi.FetchVouchers(int(account.AccountId))
+	if err != nil {
+		return nil, pkg.ErrServerError
+	}
+
+	return &presenter.Account{
+		Id:           account.Id,
+		EnterpriseId: account.EnterpriseId,
+		Name:         account.Name,
+		Phone:        account.Phone,
+		Vouchers:     response,
+	}, err
 }
 
 func (s *service) CreateAccount(account *entities.Account) (*entities.Account, error) {
@@ -51,8 +66,25 @@ func (s *service) FetchAccountsForEnterprise(enterpriseId int) (*[]entities.Acco
 	return s.accountRepository.ReadEnterpriseAccounts(enterpriseId)
 }
 
-func (s *service) GetAccountForEnterprise(enterpriseId int, id int) (*entities.Account, error) {
-	return s.accountRepository.ReadEnterpriseAccount(enterpriseId, id)
+func (s *service) GetAccountForEnterprise(enterpriseId int, id int) (*presenter.Account, error) {
+	account, err := s.accountRepository.ReadEnterpriseAccount(enterpriseId, id)
+	if err != nil {
+		return nil, pkg.ErrServerError
+	}
+
+	response, err := s.paymentsApi.FetchVouchers(int(account.AccountId))
+	if err != nil {
+		return nil, pkg.ErrServerError
+	}
+
+	return &presenter.Account{
+		Id:           account.Id,
+		EnterpriseId: account.EnterpriseId,
+		Name:         account.Name,
+		Phone:        account.Phone,
+		Teams:        account.Teams,
+		Vouchers:     response,
+	}, err
 }
 
 func (s *service) CreateBulkAccounts(accounts []entities.Account) (*[]entities.Account, map[string]string) {
@@ -103,5 +135,9 @@ func (s *service) CreateBulkAccounts(accounts []entities.Account) (*[]entities.A
 }
 
 func NewService(account Repository) Service {
-	return &service{accountRepository: account, accountsApi: clients.GetAccountClient()}
+	return &service{
+		accountRepository: account,
+		accountsApi:       clients.GetAccountClient(),
+		paymentsApi:       clients.GetPaymentClient(),
+	}
 }

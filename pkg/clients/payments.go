@@ -36,7 +36,7 @@ type VoucherTypeApiResponse struct {
 
 type VouchersApiResponse struct {
 	ApiResponse
-	Data *[]Voucher `json:"data"`
+	Data []*Voucher `json:"data"`
 }
 
 type VoucherApiResponse struct {
@@ -160,7 +160,7 @@ func (api *ApiClient) CreateVoucherType(accountId int, name string) (*VoucherTyp
 // VOUCHERS
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-func (api *ApiClient) FetchVouchers(accountId int) (*[]Voucher, error) {
+func (api *ApiClient) FetchVouchers(accountId int) ([]*Voucher, error) {
 	var apiResponse = new(VouchersApiResponse)
 
 	err := api.NewRequest(http.MethodGet, "/vouchers?account_id="+strconv.Itoa(accountId), nil).Send(apiResponse)

@@ -56,6 +56,8 @@ type Voucher struct {
 	Id          int         `json:"id"`
 	AccountId   int         `json:"account_id"`
 	Balance     int         `json:"balance"`
+	CreatedAt   time.Time   `json:"created_at"`
+	UpdatedAt   time.Time   `json:"updated_at"`
 	VoucherType VoucherType `json:"voucher_type,omitempty"`
 }
 
