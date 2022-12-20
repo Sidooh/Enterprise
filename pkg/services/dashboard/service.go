@@ -4,6 +4,7 @@ import (
 	"enterprise.sidooh/pkg"
 	"enterprise.sidooh/pkg/clients"
 	"enterprise.sidooh/pkg/entities"
+	"enterprise.sidooh/utils"
 )
 
 type Service interface {
@@ -23,11 +24,25 @@ func (s *service) GetDashboardStatistics(enterprise entities.Enterprise) (*clien
 		return nil, pkg.ErrServerError
 	}
 
+	voucherTransactions, err := s.paymentsApi.FetchVoucherTransactions(int(enterprise.AccountId), utils.VOUCHER_TRANSACTIONS_LIMIT)
+	if err != nil {
+		return nil, pkg.ErrServerError
+	}
+
+	totalCount, totalAmount := 0, 0
+	for _, vT := range *voucherTransactions {
+		if vT.Type == "CREDIT" {
+			totalCount++
+			totalAmount += vT.Amount
+		}
+	}
+
 	//	TODO: Implement vouchers disbursed logic
 	result := &clients.DashboardStatistics{
-		FloatBalance:      response.Balance,
-		AccountsCount:     int(s.repository.CountAccounts()),
-		VouchersDisbursed: 21,
+		FloatBalance:            response.Balance,
+		AccountsCount:           int(s.repository.CountAccounts()),
+		DisbursedVouchersAmount: totalAmount,
+		DisbursedVouchersCount:  totalCount,
 	}
 
 	return result, nil

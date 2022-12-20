@@ -60,7 +60,8 @@ type Voucher struct {
 }
 
 type DashboardStatistics struct {
-	FloatBalance      int `json:"float_balance"`
-	AccountsCount     int `json:"accounts_count"`
-	VouchersDisbursed int `json:"vouchers_disbursed"`
+	FloatBalance            int `json:"float_balance"`
+	AccountsCount           int `json:"accounts_count"`
+	DisbursedVouchersCount  int `json:"disbursed_vouchers_count"`
+	DisbursedVouchersAmount int `json:"disbursed_vouchers_amount"`
 }
