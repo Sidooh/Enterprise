@@ -53,9 +53,10 @@ type VoucherTransaction struct {
 }
 
 type Voucher struct {
-	Id        int `json:"id"`
-	AccountId int `json:"account_id"`
-	Balance   int `json:"balance"`
+	Id          int         `json:"id"`
+	AccountId   int         `json:"account_id"`
+	Balance     int         `json:"balance"`
+	VoucherType VoucherType `json:"voucher_type,omitempty"`
 }
 
 type DashboardStatistics struct {

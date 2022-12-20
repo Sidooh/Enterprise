@@ -204,7 +204,7 @@ func (api *ApiClient) CreateVoucher(enterpriseAccountId, voucherTypeId int) (*Vo
 func (api *ApiClient) FetchVoucherTransactions(accountId int, limit int) (*[]VoucherTransaction, error) {
 	var apiResponse = new(VoucherTransactionsApiResponse)
 
-	var endpoint = "/voucher-transactions?account_id=" + strconv.Itoa(accountId)
+	var endpoint = "/voucher-transactions?with=voucher&account_id=" + strconv.Itoa(accountId)
 	if limit > 0 {
 		endpoint += "&limit=" + strconv.Itoa(limit)
 	}
