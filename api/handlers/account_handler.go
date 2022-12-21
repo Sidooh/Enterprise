@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"enterprise.sidooh/api/middleware"
+	"enterprise.sidooh/api/presenter"
 	"enterprise.sidooh/pkg/entities"
 	"enterprise.sidooh/pkg/services/account"
 	"enterprise.sidooh/utils"
@@ -27,7 +28,7 @@ func GetAccount(service account.Service) fiber.Handler {
 			return ctx.JSON(utils.ValidationErrorResponse(errors.New("invalid id parameter")))
 		}
 
-		fetched := new(entities.Account)
+		fetched := new(presenter.Account)
 
 		if utils.IsSuperAdmin(ctx) {
 			fetched, err = service.GetAccount(id)

@@ -2,20 +2,24 @@ package team
 
 import (
 	"enterprise.sidooh/api/presenter"
+	"enterprise.sidooh/pkg"
 	"enterprise.sidooh/pkg/entities"
+	"enterprise.sidooh/pkg/services/account"
 )
 
 type Service interface {
 	FetchTeams() (*[]entities.Team, error)
 	GetTeam(id int) (*entities.Team, error)
 	CreateTeam(team *entities.Team) (*presenter.Team, error)
+	AddTeamAccount(team *entities.Team, accountId int) (*entities.Account, error)
 
 	FetchTeamsForEnterprise(enterpriseId int) (*[]entities.Team, error)
 	GetTeamForEnterprise(enterpriseId int, id int) (*entities.Team, error)
 }
 
 type service struct {
-	teamRepository Repository
+	teamRepository    Repository
+	accountRepository account.Repository
 }
 
 func (s *service) FetchTeams() (*[]entities.Team, error) {
@@ -36,6 +40,17 @@ func (s *service) CreateTeam(team *entities.Team) (*presenter.Team, error) {
 	}, err
 }
 
+func (s *service) AddTeamAccount(team *entities.Team, accountId int) (*entities.Account, error) {
+	account, err := s.accountRepository.ReadAccount(accountId)
+	if err != nil {
+		return nil, pkg.ErrInvalidAccount
+	}
+
+	err = s.teamRepository.AddTeamAccount(team, account.Id)
+
+	return account, err
+}
+
 func (s *service) FetchTeamsForEnterprise(enterpriseId int) (*[]entities.Team, error) {
 	return s.teamRepository.ReadEnterpriseTeams(enterpriseId)
 }
@@ -45,5 +60,6 @@ func (s *service) GetTeamForEnterprise(enterpriseId int, id int) (*entities.Team
 }
 
 func NewService(team Repository) Service {
-	return &service{teamRepository: team}
+	accountRepository := account.NewRepo()
+	return &service{teamRepository: team, accountRepository: accountRepository}
 }

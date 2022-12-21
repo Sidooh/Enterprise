@@ -19,6 +19,11 @@ func GetPaymentClient() *ApiClient {
 	return paymentClient
 }
 
+type PaymentApiResponse struct {
+	ApiResponse
+	Data *Payment `json:"data"`
+}
+
 type VoucherTypesApiResponse struct {
 	ApiResponse
 	Data *[]VoucherType `json:"data"`
@@ -27,6 +32,11 @@ type VoucherTypesApiResponse struct {
 type VoucherTypeApiResponse struct {
 	ApiResponse
 	Data *VoucherType `json:"data"`
+}
+
+type VouchersApiResponse struct {
+	ApiResponse
+	Data []*Voucher `json:"data"`
 }
 
 type VoucherApiResponse struct {
@@ -150,8 +160,16 @@ func (api *ApiClient) CreateVoucherType(accountId int, name string) (*VoucherTyp
 // VOUCHERS
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-func (api *ApiClient) DisburseVoucher(accountId, floatAccountId, voucherId, amount int) (*VoucherType, error) {
-	var apiResponse = new(ApiResponse)
+func (api *ApiClient) FetchVouchers(accountId int) ([]*Voucher, error) {
+	var apiResponse = new(VouchersApiResponse)
+
+	err := api.NewRequest(http.MethodGet, "/vouchers?account_id="+strconv.Itoa(accountId), nil).Send(apiResponse)
+
+	return apiResponse.Data, err
+}
+
+func (api *ApiClient) DisburseVoucher(accountId, floatAccountId, voucherId, amount int) (*Payment, error) {
+	var apiResponse = new(PaymentApiResponse)
 
 	jsonData, err := json.Marshal(map[string]interface{}{
 		"account_id":     accountId,
@@ -166,7 +184,7 @@ func (api *ApiClient) DisburseVoucher(accountId, floatAccountId, voucherId, amou
 
 	err = api.NewRequest(http.MethodPost, "/vouchers/credit", dataBytes).Send(apiResponse)
 
-	return apiResponse.Data.(*VoucherType), err
+	return apiResponse.Data, err
 }
 
 func (api *ApiClient) CreateVoucher(enterpriseAccountId, voucherTypeId int) (*Voucher, error) {
@@ -186,7 +204,7 @@ func (api *ApiClient) CreateVoucher(enterpriseAccountId, voucherTypeId int) (*Vo
 func (api *ApiClient) FetchVoucherTransactions(accountId int, limit int) (*[]VoucherTransaction, error) {
 	var apiResponse = new(VoucherTransactionsApiResponse)
 
-	var endpoint = "/voucher-transactions?account_id=" + strconv.Itoa(accountId)
+	var endpoint = "/voucher-transactions?with=voucher&account_id=" + strconv.Itoa(accountId)
 	if limit > 0 {
 		endpoint += "&limit=" + strconv.Itoa(limit)
 	}

@@ -8,6 +8,12 @@ type Account struct {
 	Active bool   `json:"active"`
 }
 
+type Payment struct {
+	Id     int    `json:"id"`
+	Amount string `json:"amount"`
+	Status string `json:"status"`
+}
+
 type FloatAccount struct {
 	Id            int    `json:"id"`
 	Balance       int    `json:"balance"`
@@ -47,13 +53,17 @@ type VoucherTransaction struct {
 }
 
 type Voucher struct {
-	Id        int `json:"id"`
-	AccountId int `json:"account_id"`
-	Balance   int `json:"balance"`
+	Id          int         `json:"id"`
+	AccountId   int         `json:"account_id"`
+	Balance     int         `json:"balance"`
+	CreatedAt   time.Time   `json:"created_at"`
+	UpdatedAt   time.Time   `json:"updated_at"`
+	VoucherType VoucherType `json:"voucher_type,omitempty"`
 }
 
 type DashboardStatistics struct {
-	FloatBalance      int `json:"float_balance"`
-	AccountsCount     int `json:"accounts_count"`
-	VouchersDisbursed int `json:"vouchers_disbursed"`
+	FloatBalance            int `json:"float_balance"`
+	AccountsCount           int `json:"accounts_count"`
+	DisbursedVouchersCount  int `json:"disbursed_vouchers_count"`
+	DisbursedVouchersAmount int `json:"disbursed_vouchers_amount"`
 }

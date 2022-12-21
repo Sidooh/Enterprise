@@ -5,6 +5,7 @@ import (
 	"enterprise.sidooh/pkg/clients"
 	"enterprise.sidooh/pkg/entities"
 	"enterprise.sidooh/pkg/services/account"
+	"enterprise.sidooh/utils"
 	"golang.org/x/exp/slices"
 )
 
@@ -14,7 +15,8 @@ type Service interface {
 	CreateVoucherType(accountId int, name string) (*clients.VoucherType, error)
 	FetchVoucherTypesForEnterprise(accountId int) (*[]clients.VoucherType, error)
 	GetVoucherTypeForEnterprise(enterpriseId, id int) (*clients.VoucherType, error)
-	DisburseVoucherType(enterprise entities.Enterprise, voucherTypeId, accountId, amount int) (*clients.VoucherType, error)
+	GetVoucherTransactionsForEnterprise(enterprise entities.Enterprise) (*[]clients.VoucherTransaction, error)
+	DisburseVoucherType(enterprise entities.Enterprise, voucherTypeId, accountId, amount int) (*clients.Payment, error)
 }
 
 type service struct {
@@ -49,7 +51,16 @@ func (s *service) GetVoucherTypeForEnterprise(enterpriseId int, id int) (*client
 	return response, nil
 }
 
-func (s *service) DisburseVoucherType(enterprise entities.Enterprise, voucherTypeId, accountId, amount int) (*clients.VoucherType, error) {
+func (s *service) GetVoucherTransactionsForEnterprise(enterprise entities.Enterprise) (*[]clients.VoucherTransaction, error) {
+	response, err := s.paymentsApi.FetchVoucherTransactions(int(enterprise.FloatAccountId), utils.VOUCHER_TRANSACTIONS_LIMIT)
+	if err != nil {
+		return nil, pkg.ErrServerError
+	}
+
+	return response, nil
+}
+
+func (s *service) DisburseVoucherType(enterprise entities.Enterprise, voucherTypeId, accountId, amount int) (*clients.Payment, error) {
 	account, err := s.accountRepository.ReadAccount(accountId)
 	if err != nil {
 		return nil, pkg.ErrInvalidAccount

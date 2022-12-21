@@ -94,6 +94,26 @@ func CreateVoucherType(service voucher.Service) fiber.Handler {
 	}
 }
 
+func GetVoucherTransactions(service voucher.Service) fiber.Handler {
+	return func(ctx *fiber.Ctx) error {
+		fetched := new([]clients.VoucherTransaction)
+		err := *new(error)
+
+		if utils.IsAdmin(ctx) {
+			enterprise := utils.GetEnterprise(ctx)
+			fetched, err = service.GetVoucherTransactionsForEnterprise(enterprise)
+		} else {
+			return utils.HandleUnauthorized(ctx)
+		}
+
+		if err != nil {
+			return utils.HandleErrorResponse(ctx, err)
+		}
+
+		return utils.HandleSuccessResponse(ctx, fetched)
+	}
+}
+
 func DisburseVoucherType(service voucher.Service) fiber.Handler {
 	return func(ctx *fiber.Ctx) error {
 		id, err := ctx.ParamsInt("id")
@@ -107,7 +127,7 @@ func DisburseVoucherType(service voucher.Service) fiber.Handler {
 			return ctx.Status(http.StatusUnprocessableEntity).JSON(err)
 		}
 
-		fetched := new(clients.VoucherType)
+		fetched := new(clients.Payment)
 
 		// TODO: Use permissions for this part - determine who can add voucherTypes
 		if utils.IsAdmin(ctx) {

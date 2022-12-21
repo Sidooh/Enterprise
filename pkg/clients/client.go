@@ -8,7 +8,6 @@ import (
 	"errors"
 	"github.com/spf13/viper"
 	"io"
-	"io/ioutil"
 	"net/http"
 	"strings"
 	"time"
@@ -76,7 +75,7 @@ func (api *ApiClient) Send(data interface{}) error {
 	defer response.Body.Close()
 	logger.ClientLog.Println("API_RES - raw: ", response, time.Since(start))
 
-	body, err := ioutil.ReadAll(response.Body)
+	body, err := io.ReadAll(response.Body)
 	if err != nil {
 		logger.ClientLog.Println("Couldn't parse response body: ", err)
 	}
@@ -112,7 +111,7 @@ func (api *ApiClient) Send(data interface{}) error {
 		logger.ClientLog.Panic("Failed to authenticate.")
 	}
 
-	err = json.Unmarshal(body, &data)
+	err = json.Unmarshal(body, data)
 	if err != nil {
 		logger.ClientLog.Println("Failed to unmarshal body: ", err)
 	}

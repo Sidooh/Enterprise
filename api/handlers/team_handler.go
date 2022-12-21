@@ -14,6 +14,9 @@ import (
 type CreateTeamRequest struct {
 	Name string `json:"name" validate:"required"`
 }
+type CreateTeamAccountRequest struct {
+	AccountId int `json:"account_id" validate:"required"`
+}
 
 // TODO: Refactor all handlers to do the data transformation from entities to presenters
 //  Or should we do it in service?
@@ -84,6 +87,38 @@ func CreateTeam(service team.Service) fiber.Handler {
 				Name:         request.Name,
 				EnterpriseId: uint(enterpriseId),
 			})
+		} else {
+			return utils.HandleUnauthorized(ctx)
+		}
+
+		if err != nil {
+			return utils.HandleErrorResponse(ctx, err)
+		}
+
+		return utils.HandleSuccessResponse(ctx, fetched)
+	}
+}
+
+func CreateTeamAccount(service team.Service) fiber.Handler {
+	return func(ctx *fiber.Ctx) error {
+		id, err := ctx.ParamsInt("id")
+		if err != nil {
+			ctx.Status(http.StatusBadRequest)
+			return ctx.JSON(utils.ValidationErrorResponse(errors.New("invalid id parameter")))
+		}
+
+		var request CreateTeamAccountRequest
+		if err := middleware.BindAndValidateRequest(ctx, &request); err != nil {
+			return ctx.Status(http.StatusUnprocessableEntity).JSON(err)
+		}
+
+		fetched := new(entities.Account)
+
+		// TODO: Use permissions for this part - determine who can add teams
+		if utils.IsAdmin(ctx) {
+			if team, err := service.GetTeam(id); err == nil {
+				fetched, err = service.AddTeamAccount(team, request.AccountId)
+			}
 		} else {
 			return utils.HandleUnauthorized(ctx)
 		}
