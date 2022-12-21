@@ -120,8 +120,12 @@ func (api *ApiClient) Send(data interface{}) error {
 }
 
 func (api *ApiClient) setDefaultHeaders() {
-	api.request.Header.Add("Accept", "application/json")
-	api.request.Header.Add("Content-Type", `application/json`)
+	api.request.Header = http.Header{
+		"Accept":       {"application/json"},
+		"Content-Type": {"application/json"},
+	}
+	//api.request.Header.Set("Accept", "application/json")
+	//api.request.Header.Set("Content-Type", `application/json`)
 }
 
 func (api *ApiClient) baseRequest(method string, endpoint string, body io.Reader) *ApiClient {
