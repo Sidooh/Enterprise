@@ -1,2 +1,9 @@
 .idea
 .run
+.env
+*.log
+coverage.*
+
+y.hide
+enterprise.sidooh
+cloud_sql_proxy

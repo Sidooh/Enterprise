@@ -1,28 +1,47 @@
 package main
 
 import (
-	"github.com/gofiber/fiber/v2"
-	"github.com/gofiber/fiber/v2/middleware/cors"
-	"github.com/gofiber/fiber/v2/middleware/logger"
+	"enterprise.sidooh/api"
+	"enterprise.sidooh/pkg/cache"
+	"enterprise.sidooh/pkg/clients"
+	"enterprise.sidooh/pkg/datastore"
+	"enterprise.sidooh/pkg/logger"
+	"enterprise.sidooh/utils"
+	"fmt"
+	"github.com/spf13/viper"
 	"log"
-	"sidooh-enterprise-gateway/api/routes"
-	"sidooh-enterprise-gateway/pkg/enterprise"
+	"os"
+	"os/signal"
+	"syscall"
 )
 
 func main() {
-	app := fiber.New()
-	app.Use(cors.New())
-	app.Use(logger.New())
+	utils.SetupConfig(".")
 
-	app.Get("/", func(ctx *fiber.Ctx) error {
-		return ctx.JSON("Yaaay!!!")
-	})
+	jwtKey := viper.GetString("JWT_KEY")
+	if len(jwtKey) == 0 {
+		panic("JWT_KEY is not set")
+	}
 
-	api := app.Group("/api")
-	v1 := api.Group("/v1")
+	logger.Init()
+	datastore.Init()
+	cache.Init()
+	clients.Init()
 
-	//enterpriseService := enterprise.NewService()
-	routes.EnterpriseRouter(v1, enterprise.NewService())
+	app := api.Server()
 
-	log.Fatal(app.Listen(":8006"))
+	port := viper.GetString("PORT")
+	if port == "" {
+		port = "8000"
+	}
+	go func() {
+		log.Fatal(app.Listen(":" + port))
+	}()
+
+	c := make(chan os.Signal, 1)                    // Create channel to signify a signal being sent
+	signal.Notify(c, os.Interrupt, syscall.SIGTERM) // When an interrupt or termination signal is sent, notify the channel
+
+	_ = <-c // This blocks the main thread until an interrupt is received
+	fmt.Println("Gracefully shutting down...")
+	_ = app.Shutdown()
 }

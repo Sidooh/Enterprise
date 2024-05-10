@@ -1,26 +1,15 @@
 package presenter
 
-import (
-	"github.com/gofiber/fiber/v2"
-	"sidooh-enterprise-gateway/pkg/entities"
-)
-
 type Enterprise struct {
-	Id int `json:"id"`
+	Id      uint   `json:"id"`
+	Name    string `json:"name"`
+	Country string `json:"country,omitempty"`
+	Address string `json:"address,omitempty"`
+	Phone   string `json:"phone"`
+	Email   string `json:"email"`
 }
 
-func EnterpriseSuccessResponse(data *entities.Enterprise) *fiber.Map {
-	enterprise := Enterprise{Id: data.Id}
-
-	return &fiber.Map{
-		"status": true,
-		"data":   enterprise,
-	}
-}
-
-func EnterpriseErrorResponse(err error) *fiber.Map {
-	return &fiber.Map{
-		"status": false,
-		"error":  err.Error(),
-	}
+type EnterpriseWithUser struct {
+	Enterprise
+	User User
 }
