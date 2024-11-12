@@ -7,7 +7,7 @@ require (
 	github.com/go-playground/validator v9.31.0+incompatible
 	github.com/gofiber/fiber/v2 v2.39.0
 	github.com/gofiber/helmet/v2 v2.2.21
-	github.com/golang-jwt/jwt/v4 v4.4.2
+	github.com/golang-jwt/jwt/v4 v4.5.1
 	github.com/hesahesa/pwdbro v0.0.0-20200103124734-0fb34fd61758
 	github.com/jellydator/ttlcache/v3 v3.0.0
 	github.com/json-iterator/go v1.1.12
